@@ -32,6 +32,8 @@ pixi run python lab/datasets/sample.py --mode 10000
 
 Play batches are written to `scratch/datasets/work/` and are not committed.
 
+The 1,000 mode can use `--exclude-holdout` for a clean benchmark. The 10,000 mode is the whole pool and includes the holdout by definition. The 1,000 clean sample takes 250 rows per class from the 2,000 non-holdout rows per class.
+
 ## Composition
 
 | Property | Value |

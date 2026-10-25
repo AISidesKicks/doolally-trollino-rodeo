@@ -136,11 +136,13 @@ A 20-text probe used five texts per class from the mode-100 sample. The prompt a
 | Risk labels | 19 low, 1 medium, 0 high |
 | Policy dimension | `none` for all 20 |
 
-The current two-field topic prompt scored 80-85% on the full 100-task sample. The probe is a different and much smaller sample, so this is not a clean A/B test. It is still a warning: adding fields can reduce the topic score, and a risk head with no labeled risk data mostly predicts `low`.
+The current two-field topic prompt scored 81.0% on the clean 100-task run, 77.8% on 1,000 and 78.9% on 10,000. The probe is a different and much smaller sample, so this is not a clean A/B test. It is still a warning: adding fields can reduce the topic score, and a risk head with no labeled risk data mostly predicts `low`.
 
 Two of the five wrong topic answers had `confidence: 0`. That is useful. The model's confidence is not calibrated, but zero confidence can be a triage signal. Wrong answers were not all uncertain: one had 0.9 confidence, two had 0.5, and two had 0.0. It cannot be trusted alone.
 
 The `policy_dimension: none` result is expected. The 10,000-row pool has no AI-governance annotations. The scheme cannot be evaluated on a dataset that does not contain the phenomena it describes.
+
+For the topic baseline, the larger runs are a better reference than this 20-text probe: LFM scored 77.8% on 1,000 and 78.9% on 10,000. d1 scored 81.8% and 81.9% at the same sizes, with zero errors. The 20-text probe is about the cost of adding risk and policy fields, not about the topic ceiling.
 
 ## 6. Topic boundary rules
 
@@ -219,7 +221,7 @@ For the policy head:
 | d1 risk head | Add a second `choice` question to `/v1/systemone` | Risk accuracy, probability calibration | Whether a decision model is better at severity than a chat model |
 | AI-policy eval set | 100 human-labeled AI-governance texts | Dimension accuracy, topic confusion | Whether the policy scheme is learnable at this scale |
 | Hard negatives | Add politics/legal and legal/finance pairs | Confusion matrix | Whether the current errors are boundary errors or data gaps |
-| Temperature 0 | Remove sampling noise | Label variance across runs | Whether the 80-85% range is model noise or sample noise |
+| Temperature 0 | Remove sampling noise | Label variance across runs | Whether the 78-81% range is model noise or sample noise |
 | Risk-stratified batch | Sample by topic and risk tier | High-impact recall | Whether the demo can show a high-risk case at all |
 
 ## 12. Recommended default

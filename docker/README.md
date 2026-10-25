@@ -55,6 +55,29 @@ curl -sS http://127.0.0.1:8082/v1/systemone \
 
 The d1 answer arrives at `answers.category.choice` with calibrated probabilities.
 
+## Benchmark modes
+
+All three modes use the same API. A 1,000 run with the holdout excluded takes about 10 minutes on the RTX 4070. The full 10,000 run takes about 91 minutes.
+
+```bash
+# 100-task pilot, clean sample
+curl -sS -X POST http://127.0.0.1:3030/api/runs \
+  -H 'content-type: application/json' \
+  -d '{"mode":100,"provider":"llama","batchSize":3,"pauseMs":0,"retries":1,"excludeHoldout":true}'
+
+# 1,000-task clean benchmark
+curl -sS -X POST http://127.0.0.1:3030/api/runs \
+  -H 'content-type: application/json' \
+  -d '{"mode":1000,"provider":"llama","batchSize":3,"pauseMs":0,"retries":1,"excludeHoldout":true}'
+
+# 10,000-task full-pool stress run
+curl -sS -X POST http://127.0.0.1:3030/api/runs \
+  -H 'content-type: application/json' \
+  -d '{"mode":10000,"provider":"llama","batchSize":3,"pauseMs":0,"retries":1,"excludeHoldout":false}'
+```
+
+The 10,000 mode includes the holdout. A clean 10,000 sample is not possible because the non-holdout folds only have 2,000 rows per class.
+
 ## Optional LFM fine-tune
 
 The fine-tune is 6.17 GB. On a 12 GB GPU it can run next to d1, but not next to stock LFM as well. Stop stock LFM first:
