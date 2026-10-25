@@ -8,6 +8,9 @@ scratch/*
 
 # generated datasets and local caches
 datasets/*.csv
+datasets/*.jsonl
+datasets/*.manifest.json
+datasets/*.parquet
 .cache/
 
 # node
