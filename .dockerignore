@@ -1,0 +1,17 @@
+# keep the docker build context small and secret-free
+.git
+.pixi
+.cache
+.env
+.env.*
+models
+scratch
+docs
+gui
+tests
+mds
+lab
+node_modules
+
+datasets/*.csv
+datasets/*.parquet

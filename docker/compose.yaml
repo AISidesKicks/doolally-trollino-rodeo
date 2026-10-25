@@ -1,0 +1,168 @@
+name: dlly-lab
+
+x-llama-common: &llama-common
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda
+  restart: unless-stopped
+  volumes:
+    - ../models:/models:ro
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+services:
+  llama-lfm:
+    <<: *llama-common
+    container_name: dlly-llama-lfm
+    ports:
+      - "127.0.0.1:8081:8080"
+    command:
+      - --model
+      - /models/gguf/${LFM_GGUF:-LFM2.5-8B-A1B-Q4_K_M.gguf}
+      - --alias
+      - lfm
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --ctx-size
+      - "4096"
+      - --n-gpu-layers
+      - "99"
+      - --parallel
+      - "1"
+      - --reasoning-budget
+      - "128"
+      - --cont-batching
+      - --metrics
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  llama-d1:
+    <<: *llama-common
+    container_name: dlly-llama-d1
+    ports:
+      - "127.0.0.1:8082:8080"
+    command:
+      - --model
+      - /models/gguf/${D1_GGUF:-d1-3B-Q4_K_M.gguf}
+      - --alias
+      - d1
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --ctx-size
+      - "4096"
+      - --n-gpu-layers
+      - "99"
+      - --parallel
+      - "1"
+      - --cache-ram
+      - "0"
+      - --metrics
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  llama-lfm-ft:
+    <<: *llama-common
+    container_name: dlly-llama-lfm-ft
+    profiles: ["lfm-ft"]
+    ports:
+      - "127.0.0.1:8083:8080"
+    command:
+      - --model
+      - /models/gguf/${LFM_FT_GGUF:-LFM2.5-8B-A1B-FT-Q4KXL.gguf}
+      - --alias
+      - lfm-ft
+      - --jinja
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --ctx-size
+      - "4096"
+      - --n-gpu-layers
+      - "99"
+      - --parallel
+      - "1"
+      - --cont-batching
+      - --metrics
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: dlly-phoenix
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6006:6006"
+      - "127.0.0.1:4317:4317"
+    environment:
+      PHOENIX_WORKING_DIR: /data
+    volumes:
+      - dlly-phoenix-data:/data
+
+  lab:
+    build:
+      context: ..
+      dockerfile: docker/node.Dockerfile
+    container_name: dlly-lab
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3030:3030"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3030"
+      DLLY_DB_PATH: /data/lab.db
+      DLLY_LOG_DIR: /data/logs
+      LLAMA_LFM_URL: http://llama-lfm:8080
+      LLAMA_D1_URL: http://llama-d1:8080
+      LLAMA_LFM_FT_URL: http://llama-lfm-ft:8080
+      PHOENIX_URL: http://phoenix:6006
+    volumes:
+      - dlly-lab-data:/data
+    depends_on:
+      llama-lfm:
+        condition: service_healthy
+      llama-d1:
+        condition: service_healthy
+      phoenix:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3030/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  dlly-phoenix-data:
+    name: dlly-phoenix-data
+  dlly-lab-data:
+    name: dlly-lab-data
+
+networks:
+  default:
+    name: dlly-net
