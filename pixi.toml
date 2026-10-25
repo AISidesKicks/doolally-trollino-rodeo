@@ -10,3 +10,5 @@ version = "0.1.0"
 [dependencies]
 python = "3.12.*"
 nodejs = "24.*"
+huggingface_hub = ">=1"
+pyarrow = ">=20"
