@@ -10,6 +10,8 @@ A durable high-risk text classification lab with two small local models, a live 
 
 Trollino posts the bait. Doolally stamps the ban. Both trolls read the same short texts, and SQLite keeps the score even when Trollino pulls the plug.
 
+The troll names and titles are a story device, not model job titles. Doolally runs on the LFM chat model. Trollino runs on the d1 decision model.
+
 This is an educational project about the real cost of AI infrastructure: accuracy, latency, memory and recovery. It is not a production moderation system.
 
 ## What it shows
