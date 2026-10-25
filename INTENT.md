@@ -149,7 +149,7 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 | `mds/` | deep dives and reference lists | dataset notes, durable research |
 | `datasets/` | curated short-topic datasets | 10k canonical pool + sources, committed |
 | `models/gguf/` | local GGUF weights, gitignored except placeholders | 2 default models, 1 optional |
-| `tests/` | Python dataset tests and Node worker tests | 12 Python, 13 Node |
+| `tests/` | Python dataset tests and Node worker tests | 12 Python, 15 Node |
 | `scratch/` | logs, HF cache and crash artifacts, gitignored except `.gitkeep` | ready |
 
 ## Plan and status
