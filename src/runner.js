@@ -31,6 +31,7 @@ export async function runBatches(db, runId, providers, options = {}) {
     quiet = false,
     kill = process.kill.bind(process),
     onBatch = null,
+    tracer = null,
   } = options;
 
   const run = getRun(db, runId);
@@ -47,6 +48,7 @@ export async function runBatches(db, runId, providers, options = {}) {
 
     const tasks = getBatchTasks(db, runId, batchIndex);
     if (tasks.length === 0) continue;
+    const batchStarted = Date.now();
     markBatchStarted(db, runId, batchIndex);
 
     const existing = getExistingAttempts(
@@ -113,6 +115,17 @@ export async function runBatches(db, runId, providers, options = {}) {
 
     const completed = commitBatch(db, runId, batchIndex, attempts, run.models.length);
     processed += 1;
+
+    if (tracer?.enabled) {
+      void tracer.recordBatch({
+        runId,
+        batchIndex,
+        tasks: tasks.length,
+        attempts,
+        completed,
+        startedAt: batchStarted,
+      });
+    }
 
     if (!quiet) {
       const latency = run.models

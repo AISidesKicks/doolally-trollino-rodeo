@@ -20,6 +20,7 @@ import { loadDataset } from "./dataset.js";
 import { createProviders } from "./providers/index.js";
 import { runBatches } from "./runner.js";
 import { selectTasks } from "./sample.js";
+import { createTracer } from "./tracing.js";
 
 function usage() {
   console.log(`Usage:
@@ -43,6 +44,7 @@ Options:
   --lfm-url <url>               default ${MODEL_META.lfm.url}
   --d1-url <url>                default ${MODEL_META.d1.url}
   --lfm-ft-url <url>            default ${MODEL_META["lfm-ft"].url}
+  --phoenix-url <url>           OTLP HTTP endpoint, default $PHOENIX_URL
   --quiet`);
 }
 
@@ -87,6 +89,7 @@ async function main() {
       "lfm-url": { type: "string" },
       "d1-url": { type: "string" },
       "lfm-ft-url": { type: "string" },
+      "phoenix-url": { type: "string" },
       quiet: { type: "boolean", default: false },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -99,6 +102,9 @@ async function main() {
 
   const command = positionals[0] ?? "run";
   const db = openDb();
+  const tracer = createTracer({
+    endpoint: values["phoenix-url"] ?? process.env.PHOENIX_URL,
+  });
 
   try {
     if (command === "list") {
@@ -155,6 +161,7 @@ async function main() {
         maxBatches,
         retries,
         quiet: values.quiet,
+        tracer,
       });
       return;
     }
@@ -221,6 +228,7 @@ async function main() {
       maxBatches,
       retries,
       quiet: values.quiet,
+      tracer,
     });
   } catch (error) {
     console.error(`worker error: ${error.message}`);
