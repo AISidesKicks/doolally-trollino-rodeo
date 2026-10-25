@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Don't feed the trolls. A durable high-risk topical context classification lab with two small local models."
+    />
+    <title>Don't feed the trolls - DLLY lab</title>
+    <style>
+      :root {
+        --bg: #080b10;
+        --panel: #111923;
+        --panel-2: #16212d;
+        --line: #243444;
+        --line-bright: #365069;
+        --ink: #eaf1f8;
+        --ink-soft: #c2d0dc;
+        --muted: #8ba0b2;
+        --moss: #8ed081;
+        --fire: #ff9b45;
+        --ban: #ff6464;
+        --sky: #7dd3fc;
+        --rose: #fda4af;
+        --font: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+        --display: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(900px 540px at 8% -8%, rgb(142 208 129 / 16%), transparent 62%),
+          radial-gradient(760px 460px at 96% 4%, rgb(255 155 69 / 12%), transparent 60%),
+          var(--bg);
+        font-family: var(--font);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: var(--moss);
+      }
+
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: var(--display);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: clamp(2.7rem, 7vw, 5.6rem);
+        font-weight: 900;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: clamp(1.5rem, 3vw, 2.2rem);
+      }
+
+      h3 {
+        margin: 0 0 4px;
+        font-size: 1.3rem;
+      }
+
+      p {
+        margin: 0 0 14px;
+      }
+
+      code {
+        padding: 2px 5px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #070a0e;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.85em;
+      }
+
+      .wrap {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+        padding: 0 clamp(16px, 4vw, 40px);
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid rgb(255 255 255 / 8%);
+        background: rgb(8 11 16 / 82%);
+        backdrop-filter: blur(14px);
+      }
+
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-height: 64px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-family: var(--display);
+        font-weight: 900;
+        text-decoration: none;
+      }
+
+      .brand span {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        color: #08130a;
+        background: linear-gradient(140deg, #a5e796, var(--moss) 55%, #4fa75f);
+        font-size: 0.78rem;
+      }
+
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-left: auto;
+      }
+
+      nav a {
+        padding: 7px 10px;
+        border-radius: 999px;
+        color: var(--ink-soft);
+        font-size: 0.84rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      nav a:hover {
+        color: var(--ink);
+        background: var(--panel-2);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: clamp(24px, 5vw, 56px);
+        align-items: center;
+        padding: clamp(34px, 6vw, 76px) 0 clamp(28px, 5vw, 56px);
+      }
+
+      .kicker {
+        margin-bottom: 10px;
+        color: var(--moss);
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .rainbow {
+        background: linear-gradient(
+          92deg,
+          #ff7b7b,
+          #ffb86b 18%,
+          #ffe66d 34%,
+          #8ed081 50%,
+          #6fd3e8 68%,
+          #8f9bff 84%,
+          #e39bff
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .lede {
+        max-width: 56ch;
+        color: var(--ink-soft);
+        font-size: clamp(1rem, 1.3vw, 1.16rem);
+      }
+
+      .hero-art {
+        margin: 0;
+        padding: 9px;
+        border: 1px solid var(--line-bright);
+        border-radius: 22px;
+        background: var(--panel);
+        box-shadow: 0 26px 60px rgb(0 0 0 / 45%);
+      }
+
+      .hero-art img {
+        display: block;
+        border-radius: 16px;
+      }
+
+      .hero-art figcaption {
+        padding: 9px 6px 2px;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin: 26px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .facts li {
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+      }
+
+      .facts strong {
+        display: block;
+        font-family: var(--display);
+        font-size: 1.35rem;
+        line-height: 1;
+      }
+
+      .facts span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 0.7rem;
+        line-height: 1.3;
+      }
+
+      section {
+        padding: 44px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .section-head p {
+        max-width: 60ch;
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+        text-align: right;
+      }
+
+      .trolls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .troll {
+        display: grid;
+        grid-template-columns: 118px minmax(0, 1fr);
+        gap: 16px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+      }
+
+      .troll img {
+        width: 118px;
+        height: 118px;
+        border: 1px solid var(--line-bright);
+        border-radius: 14px;
+        object-fit: cover;
+      }
+
+      .tag {
+        display: inline-block;
+        margin-bottom: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.63rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .tag-mod {
+        color: #07242c;
+        background: var(--sky);
+      }
+
+      .tag-author {
+        color: #2c1013;
+        background: var(--rose);
+      }
+
+      .troll p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+      }
+
+      .steps li {
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+      }
+
+      .steps li::before {
+        counter-increment: step;
+        content: counter(step);
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 10px;
+        border: 1px solid var(--line-bright);
+        border-radius: 50%;
+        color: var(--moss);
+        font-family: var(--display);
+        font-weight: 900;
+      }
+
+      .steps strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .steps p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 680px;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 0.86rem;
+      }
+
+      th {
+        color: var(--muted);
+        background: var(--bg);
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      td strong {
+        display: block;
+      }
+
+      td small {
+        color: var(--muted);
+      }
+
+      .good {
+        color: #7ee0a1;
+        font-weight: 800;
+      }
+
+      .warn {
+        color: var(--fire);
+        font-weight: 800;
+      }
+
+      .bad {
+        color: var(--ban);
+        font-weight: 800;
+      }
+
+      .note {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+      }
+
+      .card h3 {
+        margin-bottom: 8px;
+      }
+
+      .card p,
+      .card li {
+        color: var(--ink-soft);
+        font-size: 0.86rem;
+      }
+
+      .card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .card li {
+        margin-bottom: 6px;
+      }
+
+      .callout {
+        margin-top: 16px;
+        padding: 16px 18px;
+        border: 1px dashed var(--line-bright);
+        border-radius: 14px;
+        background: rgb(255 155 69 / 6%);
+      }
+
+      .callout strong {
+        color: var(--fire);
+      }
+
+      pre {
+        margin: 10px 0 0;
+        padding: 14px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: #b9c9d8;
+        background: #070a0e;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.76rem;
+        line-height: 1.6;
+      }
+
+      footer {
+        padding: 30px 0 50px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .trolls,
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-art {
+          order: -1;
+        }
+
+        .steps {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .section-head {
+          display: block;
+        }
+
+        .section-head p {
+          margin-top: 8px;
+          text-align: left;
+        }
+      }
+
+      @media (max-width: 620px) {
+        nav {
+          display: none;
+        }
+
+        .facts,
+        .steps {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .troll {
+          grid-template-columns: 88px minmax(0, 1fr);
+        }
+
+        .troll img {
+          width: 88px;
+          height: 88px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap bar">
+        <a class="brand" href="/"><span>DfT</span>DLLY lab</a>
+        <nav aria-label="Sections">
+          <a href="#trolls">The trolls</a>
+          <a href="#how">How it works</a>
+          <a href="#results">Results</a>
+          <a href="#recovery">Recovery</a>
+          <a href="#data">Data</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="hero">
+        <div>
+          <p class="kicker">High-risk topical context lab</p>
+          <h1>Don't feed <span class="rainbow">the trolls.</span></h1>
+          <p class="lede">
+            Trollino posts the bait. Doolally stamps the ban. Two small local models read the same
+            short texts, and SQLite keeps the score even when Trollino pulls the plug.
+          </p>
+          <p class="lede">
+            This is an educational lab about the real cost of AI infrastructure: accuracy, latency,
+            memory and recovery. It is not a production moderation system.
+          </p>
+          <ul class="facts">
+            <li><strong>10,000</strong><span>curated texts</span></li>
+            <li><strong>4</strong><span>high-risk classes</span></li>
+            <li><strong>2</strong><span>local models</span></li>
+            <li><strong>0</strong><span>duplicates after a kill</span></li>
+          </ul>
+        </div>
+        <figure class="hero-art">
+          <img
+            src="assets/duo-doolally-trollino.webp"
+            srcset="assets/duo-doolally-trollino-800.webp 800w, assets/duo-doolally-trollino.webp 1600w"
+            sizes="(max-width: 900px) 100vw, 56vw"
+            width="1600"
+            height="893"
+            alt="Doolally the moderator in a safety vest holds a BAN sign while Trollino the author, with rainbow hair, types on a stone laptop with BAIT attached."
+          />
+          <figcaption>Two trolls, one queue, and a very durable piece of duct tape.</figcaption>
+        </figure>
+      </div>
+
+      <section id="trolls">
+        <div class="section-head">
+          <h2>The two trolls</h2>
+          <p>The characters are the mental model. The models are the actual comparison.</p>
+        </div>
+        <div class="trolls">
+          <article class="troll">
+            <img src="assets/doolally-moderator.webp" alt="Doolally the moderator" width="118" height="118" />
+            <div>
+              <span class="tag tag-mod">Moderator</span>
+              <h3>Doolally</h3>
+              <p>
+                The 8B LFM model. Reads every word, thinks briefly, then picks a label. Slower, but
+                careful. In the real run it landed within five points of the small model.
+              </p>
+            </div>
+          </article>
+          <article class="troll">
+            <img src="assets/trollino-author.webp" alt="Trollino the author" width="118" height="118" />
+            <div>
+              <span class="tag tag-author">Author</span>
+              <h3>Trollino</h3>
+              <p>
+                The 3B d1 decision model. One forward pass, no generated tokens, no second thoughts.
+                In the real run it matched the 8B accuracy at about 22x the speed.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="how">
+        <div class="section-head">
+          <h2>How the trick works</h2>
+          <p>Bait, ban, commit, recover. The order matters.</p>
+        </div>
+        <ol class="steps">
+          <li>
+            <strong>Stratified bait</strong>
+            <p>Each class is hash-sampled across the whole pool, then mixed. Never the first N rows.</p>
+          </li>
+          <li>
+            <strong>Two opinions</strong>
+            <p>Both models get the same short text. Labels, confidence and latency are recorded.</p>
+          </li>
+          <li>
+            <strong>One retry</strong>
+            <p>An invalid label gets one more attempt. A bad batch can take twice as long, and that is visible.</p>
+          </li>
+          <li>
+            <strong>Durable punch</strong>
+            <p>Each batch commits to SQLite before the next starts. A hard kill costs one batch, not the run.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section id="results">
+        <div class="section-head">
+          <h2>Real 100-task result</h2>
+          <p>Mode 100, seed 42, same play sample, retry 1, zero provider errors.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Role</th>
+                <th>Accuracy</th>
+                <th>Median latency</th>
+                <th>Speed</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>LFM2.5-8B-A1B</strong><small>Q4_K_M, 5.16 GB</small></td>
+                <td>Doolally, moderator</td>
+                <td class="good">80-85%</td>
+                <td>594 ms</td>
+                <td>1x</td>
+                <td>Reasoning capped at 128 tokens</td>
+              </tr>
+              <tr>
+                <td><strong>d1-3B</strong><small>Q4_K_M, 1.67 GB</small></td>
+                <td>Trollino, author</td>
+                <td class="good">85%</td>
+                <td>26 ms</td>
+                <td class="good">22x faster</td>
+                <td>Decision model, one forward pass</td>
+              </tr>
+              <tr>
+                <td><strong>LFM2.5-8B-A1B FT</strong><small>Q4KXL, 6.17 GB, optional</small></td>
+                <td>Speed variant</td>
+                <td class="bad">65%</td>
+                <td>110 ms</td>
+                <td>5x faster</td>
+                <td>Not better here, so not the default</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">
+          Accuracy is measured against the dataset label. The labels are heuristic, so treat this as
+          a lab result, not a leaderboard. LFM scored 85% in a host run and 80% in the container run,
+          which is why the table shows a range. The optional fine-tune was tested because it follows
+          instructions more directly. It was faster, but 15 to 20 points less accurate on this
+          sample, so stock LFM stays the default.
+        </p>
+        <div class="callout">
+          <strong>The interesting part:</strong> the 3B decision model matched or beat the 8B chat
+          model on this narrow task, while using one fifth of the disk and answering in milliseconds.
+          Narrow classification does not always need a large generative model.
+        </div>
+      </section>
+
+      <section id="recovery">
+        <div class="section-head">
+          <h2>Trollino pulls the plug</h2>
+          <p>The demo kill is a real SIGKILL at a batch boundary. The recovery is a real SQLite resume.</p>
+        </div>
+        <div class="split">
+          <div class="card">
+            <h3>What survives</h3>
+            <ul>
+              <li>The run row, the ordered task list and every committed batch.</li>
+              <li>Both model attempts per task, with labels, confidence and latency.</li>
+              <li>The last committed batch index, so replay starts at the right place.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>What the test proved</h3>
+            <ul>
+              <li>Kill after batch 1: 3 tasks committed, 97 pending.</li>
+              <li>Resume: 100 tasks, exactly 200 attempts, 34 batches.</li>
+              <li>Zero duplicate task and model pairs after recovery.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="data">
+        <div class="section-head">
+          <h2>The data and the cost</h2>
+          <p>Short texts, four classes, a committed pool and an honest note about licenses.</p>
+        </div>
+        <div class="split">
+          <div class="card">
+            <h3>Classes</h3>
+            <ul>
+              <li>Politics &amp; Elections</li>
+              <li>Medical &amp; Health</li>
+              <li>Legal &amp; Regulatory</li>
+              <li>Financial &amp; Crypto</li>
+            </ul>
+            <p>
+              10,000 rows, 2,500 per class. Eight experiment folds of 1,000 rows plus a 2,000-row
+              holdout. Text is capped at 2,000 characters.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Sources</h3>
+            <ul>
+              <li>
+                <a href="https://huggingface.co/datasets/yassiracharki/Yahoo_Answers_10_categories_for_NLP">Yahoo Answers 10 Categories</a>,
+                8,230 rows, declared Apache-2.0.
+              </li>
+              <li>
+                <a href="https://huggingface.co/datasets/fancyzhx/ag_news">AG News</a>,
+                1,770 rows, declared license unknown.
+              </li>
+            </ul>
+            <p>
+              The rows are derived from user content and news. Review the terms before commercial
+              use. The lab keeps source links and license metadata with the dataset.
+            </p>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 18px">
+          <h3>Run it locally</h3>
+          <p>Node 24, pixi and Docker with the NVIDIA runtime. All containers use the <code>dlly-</code> prefix.</p>
+          <pre>pixi run python lab/models/download.py
+docker compose -f docker/compose.yaml up -d --build
+npm run server
+# open http://127.0.0.1:3030</pre>
+          <p class="note">
+            The mock provider runs without Docker and without models, so the full queue, kill and
+            resume flow can be demonstrated offline first.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          Built for the DLLY lab. Models run locally. No text leaves the machine. Labels are
+          heuristics, not gold annotations.
+        </p>
+        <p>
+          Model cards:
+          <a href="https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF">LFM2.5-8B-A1B</a>,
+          <a href="https://huggingface.co/LiquidAI/d1-3B-GGUF">d1-3B</a>.
+          Runtime: <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a>.
+          Traces: <a href="https://github.com/Arize-ai/phoenix">Arize Phoenix</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
