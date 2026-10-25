@@ -27,6 +27,12 @@ Keep all info as very simple HTML pages.
 
 ## For node.js 24.x use NPX local install !!!
 
+## Secrets
+
+- `.env` is local only and gitignored. Never print, log, paste or commit its values.
+- `.env.example` holds empty placeholders only.
+- `HF_TOKEN` is the read-only Hugging Face token. Load it into the process environment; never put it in URLs, dataset files or manifests.
+
 ## DLLY Python environment (isolated with pixi `dlly`)
 
 We are running inside a "pixi shell" - check it before implementing plans in code.
