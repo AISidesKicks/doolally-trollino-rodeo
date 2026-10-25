@@ -99,4 +99,4 @@ The image builds the GUI into `/app/gui` from `src/gui`. The build context exclu
 - The llama.cpp services are CPU by default only if you remove the `deploy.resources` GPU reservation. The checked-in stack expects NVIDIA.
 - The models are mounted read-only from `../models`.
 - `--reasoning-budget 128` keeps LFM's reasoning short. Remove it if you want unrestricted chain-of-thought, but expect much longer runs.
-- Phoenix is running, but the worker does not export spans yet. See the open item in `INTENT.md`.
+- Phoenix is running, and the worker exports one span per committed batch. Open http://127.0.0.1:6006 and pick the `default` project. Spans carry `run.id`, `batch.index`, `batch.tasks`, `batch.errors`, `batch.retries` and `run.completed`.
