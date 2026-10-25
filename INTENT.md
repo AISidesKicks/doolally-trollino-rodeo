@@ -27,15 +27,22 @@ All models are served by llama.cpp in Docker (server 0.7.0-dev, build 11870) and
 
 ## Measured baseline
 
-Mode 100, seed 42, same stratified sample, retry 1, zero provider errors:
+Three real runs on the same RTX 4070, retry 1, zero provider errors. The 100 and 1,000 runs exclude the holdout; the 10,000 run is the full pool.
 
-| Model | Accuracy | Median latency | Relative speed |
-| --- | --- | --- | --- |
-| LFM2.5-8B-A1B, reasoning capped at 128 tokens | 80-85% | 594 ms | 1x |
-| d1-3B, one forward pass | 85% | 26 ms | 22x faster |
-| LFM2.5-8B-A1B FT, optional | 65% | 110 ms | 5x faster |
+| Sample | LFM accuracy | d1 accuracy | LFM median | d1 median | Disagreements | Active time |
+| --- | --- | --- | --- | --- | --- | --- |
+| 100 clean | 81.0% | 85.0% | 593 ms | 27 ms | 13 | 1.0 min |
+| 1,000 clean | 77.8% | 81.8% | 606 ms | 27 ms | 152 | 10.3 min |
+| 10,000 full | 78.9% | 81.9% | 511 ms | 24 ms | 1,432 | 91.2 min |
 
-The 3B decision model matched or beat the 8B chat model on this narrow task at a fraction of the latency and disk. LFM scored 85% in a host run and 80% in the container run, so report the range rather than a single number. LFM sampling is not fully deterministic, even with the same play sample. The optional fine-tune was faster than stock LFM but 15 to 20 points less accurate, so it is not the default. These are heuristic labels, not gold annotations.
+- 34, 334 and 3,334 committed batches.
+- 200, 2,000 and 20,000 attempts.
+- d1 was 4.0 points more accurate at 100 and 1,000, and 3.0 points more accurate at 10,000.
+- d1 answered about 22x faster at every size, or about 95% less latency.
+
+Legal is the hard class at every size. LFM over-predicts Legal: at 10,000 it predicted Legal 2,829 times for 2,500 expected rows and pulled 559 Politics rows into it. d1 split Legal and Politics more evenly. Medical is the easiest class for both. Per-class F1 and confusion matrices are in [mds/benchmarks.md](mds/benchmarks.md).
+
+The optional LFM2.5-8B-A1B FT scored 65% at 110 ms on the 100-task pilot. It was faster than stock LFM but 15 to 20 points less accurate, so it is not the default. These are heuristic labels, not gold annotations.
 
 ## Target classes
 
@@ -57,6 +64,42 @@ The demo is meant to be watched, not just benchmarked. A batch is small enough t
 | `pilot` | 100 | development and live demo |
 | `short` | 1,000 | full run and benchmark |
 | `long` | 10,000 | full pool stress run |
+
+### Running the 1,000 mode
+
+1. Open the dashboard and choose **1,000**.
+2. Choose **llama.cpp**.
+3. Set batch size **3** and pause **0** for a benchmark, or **1000-2500** to watch it.
+4. Tick **Keep the holdout out** for a clean benchmark.
+5. Press **Send the trolls**.
+
+The same run through the API:
+
+```bash
+curl -sS -X POST http://127.0.0.1:3030/api/runs \
+  -H 'content-type: application/json' \
+  -d '{"mode":1000,"provider":"llama","batchSize":3,"pauseMs":0,"retries":1,"excludeHoldout":true}'
+```
+
+The 1,000 sample is 250 rows per class. With batch size 3 it produces 334 batches. The holdout filter removes the 2,000 holdout rows before sampling.
+
+### Running the 10,000 mode
+
+The 10,000 mode is the whole pool, holdout included. A clean 10,000 sample is impossible because the non-holdout folds have 2,000 rows per class.
+
+1. Choose **10,000**.
+2. Choose **llama.cpp**.
+3. Set batch size **3** and pause **0**. Expect about 91 minutes on the RTX 4070 with stock LFM.
+4. Leave **Keep the holdout out** unticked.
+5. Press **Send the trolls**.
+
+```bash
+curl -sS -X POST http://127.0.0.1:3030/api/runs \
+  -H 'content-type: application/json' \
+  -d '{"mode":10000,"provider":"llama","batchSize":3,"pauseMs":0,"retries":1,"excludeHoldout":false}'
+```
+
+With batch size 3 the run has 3,334 batches. It is a stress run, not a quick demo.
 
 ### Per run
 
