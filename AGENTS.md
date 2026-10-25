@@ -15,8 +15,8 @@ Keep all info as very simple HTML pages.
 
 ## Project layout
 
-- `docs/` - Static GitHub Pages site, starting at `docs/index.html`
-- 'gui'/ - buid dir for GUI (if needed for dicerization)
+- `docs/` - static GitHub Pages site only, starting at `docs/index.html` (HTML pages and images, nothing dynamic)
+- `gui/` - build output directory for the GUI (never `docs/`)
 - `mds/` - deep dives on memory systems and frameworks
 - `lab/` - the hands-on lab: plan and experiments (item 2 of INTENT.md)
 - `src/` - lab node.js code
@@ -45,7 +45,10 @@ Don't stop any other containers or delete any resources without explicit HITL ap
 
 ## docs is the home of the GitHub static web page
 
-- `docs/index.html` - the high-level project overview for GitHub Pages; technical deep dives are linked from the MDs
+- `docs/` is ONLY for static GitHub Pages content: hand-written HTML pages and images that describe the project.
+- Never put Node/npm build output, bundlers, or dynamic app code in `docs/`. GitHub Pages auto-detects `index.html` and may try to build the directory, which is wrong here.
+- Everything dynamic runs in Docker. The GUI is built into `gui/`, not `docs/`.
+- `docs/index.html` is the high-level project overview; technical deep dives are linked from the MDs.
 
 ## Commit conventions
 
