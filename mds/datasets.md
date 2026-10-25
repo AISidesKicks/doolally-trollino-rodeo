@@ -1,6 +1,6 @@
 # Dataset notes
 
-Shortlist of short-topic datasets for the four high-risk topical context classes. The bootstrap downloader is [datasets-dl-sample.py](datasets-dl-sample.py).
+Shortlist of short-topic datasets for the four high-risk topical context classes. The canonical builder is [../lab/datasets/build.py](../lab/datasets/build.py); the small smoke-test downloader is [datasets-dl-sample.py](datasets-dl-sample.py).
 
 ## Yahoo Answers 10 Categories
 
@@ -37,13 +37,28 @@ Shortlist of short-topic datasets for the four high-risk topical context classes
 - Model card: https://huggingface.co/QuantFactory/Llama-Guard-3-1B-GGUF
 - Reference for the hazard taxonomy behind the four target classes (Elections, Specialized Advice for medical/legal/financial).
 
-## Bootstrap output
+## Canonical build
+
+The full pool is built by [../lab/datasets/build.py](../lab/datasets/build.py). Design notes are in [../lab/datasets/README.md](../lab/datasets/README.md).
+
+```bash
+pixi run python lab/datasets/build.py --per-class 2500
+```
+
+- Output: `datasets/high-risk-10k.jsonl`, `.csv`, `.manifest.json`.
+- 10,000 rows, 2,500 per class.
+- 8 folds x 1,000 rows plus 2,000 holdout rows.
+- Current source mix: 8,230 Yahoo Answers, 1,770 AG News.
+- Text cap: 2,000 chars, about 500 tokens. Current p50 is 444 chars, p99 is 1,984.
+- Downloads: Yahoo `test.csv` (32 MB) and AG News train parquet (18.6 MB), cached under `scratch/hf-cache`.
+- `HF_TOKEN` is read from `.env` when present and never written to the output files.
+
+## Bootstrap sample
 
 ```bash
 pixi run python mds/datasets-dl-sample.py --per-class 50
 ```
 
-- Output: `datasets/high_risk_bootstrap.csv` with columns `text,label,source`.
-- Current sample: 50 rows per class, 200 total (180 Yahoo Answers, 20 AG News).
-- The file is gitignored and stays local. The script caches downloads under `scratch/hf-cache`.
-- No full dataset download: Yahoo uses `test.csv` (32 MB), AG News uses the test parquet (1.2 MB).
+- Output: `datasets/high_risk_bootstrap.csv`, 200 rows.
+- Useful for a quick smoke test without the full build.
+- Also local and gitignored.
