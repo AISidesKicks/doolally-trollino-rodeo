@@ -62,10 +62,19 @@ Sources shortlisted in [mds/datatets.md](mds/datatets.md):
 
 Rules:
 
-- **Bootstrap small.** Download only a couple hundred samples per class while the flow is being built. Do not pull full datasets on day one.
-- **Scale later.** Move to the full 100 x 1000 task lists only after the end-to-end demo works.
+- **Bootstrap small.** The bootstrap run downloads only the Yahoo test split (32 MB) and the AG News test split (1.2 MB), then stops at 50 rows per class (200 total).
+- **Scale later.** Move to the full 100 x 1000 task lists only after the end-to-end demo works. A 1000-task run needs about 250 rows per class.
+- **Yahoo labels are noisy.** Some rows are clearly mislabeled. That is part of the lesson: keep the source label visible and do not over-tune on 200 rows.
 - **Legal is noisy.** The Legal & Regulatory class is filtered by keywords (`court`, `lawsuit`, `compliance`, `contract` and similar), not human-labeled. Keep that caveat visible in the GUI and docs.
-- **Files stay local.** Dataset outputs go to `datasets/` and are not published to GitHub Pages.
+- **Files stay local.** Dataset outputs go to `datasets/`, are gitignored, and are not published to GitHub Pages.
+
+Bootstrap command:
+
+```bash
+pixi run python mds/datasets-dl-sample.py --per-class 50
+```
+
+Output: `datasets/high_risk_bootstrap.csv` with columns `text,label,source`. The script downloads directly from Hugging Face and caches files under `scratch/hf-cache`, never the 746 MB Yahoo train split.
 
 ## Architecture
 
@@ -100,17 +109,17 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 | `docker/` | container definitions, `dlly-` prefix | empty |
 | `lab/` | hands-on plan and experiments | empty |
 | `mds/` | deep dives and reference lists | dataset notes + durable research |
-| `datasets/` | curated short-topic datasets | empty |
+| `datasets/` | curated short-topic datasets | 200-row bootstrap CSV, local only |
 | `tests/` | Python test code | empty |
-| `scratch/` | logs and crash artifacts, gitignored except `.gitkeep` | ready |
+| `scratch/` | logs, HF cache and crash artifacts, gitignored except `.gitkeep` | ready |
 
 ## Plan and status
 
-- [x] Pixi environment `dlly` with Python 3.12 and Node 24.22.1.
+- [x] Pixi environment `dlly` with Python 3.12, Node 24.22.1, `huggingface_hub` and `pyarrow`.
 - [x] Verify `node:sqlite` and local `npx` installs.
 - [x] Research durable execution examples: [mds/durable-execution.md](mds/durable-execution.md).
 - [x] Record the static-only rule for `docs/` and the `gui/` build directory.
-- [ ] Dataset bootstrap: a couple hundred samples per class.
+- [x] Dataset bootstrap: 50 rows per class (200 total) from Yahoo Answers + AG News.
 - [ ] SQLite schema: runs, tasks, attempts, labels, timings.
 - [ ] Node durable worker with `short` and `long` play modes.
 - [ ] llama.cpp Docker services for both models.
