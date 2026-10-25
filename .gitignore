@@ -12,3 +12,8 @@ datasets/*.csv
 
 # node
 node_modules/
+
+# local environment files
+.env
+.env.*
+!.env.example
