@@ -24,6 +24,14 @@ __pycache__/
 .env.*
 !.env.example
 
-# model weights, only the placeholder stays tracked
+# model weights, only the placeholders stay tracked
 models/*
 !models/.gitkeep
+!models/README.md
+!models/gguf/
+models/gguf/*
+!models/gguf/.gitkeep
+
+# gui build output, source lives in src/gui
+gui/*
+!gui/.gitkeep
