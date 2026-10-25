@@ -44,7 +44,7 @@ The script writes directly into `models/gguf/` and verifies the SHA-256 from the
 | --- | --- | --- | --- |
 | `lfm` | [LiquidAI/LFM2.5-8B-A1B-GGUF](https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF) | chat classifier, reasoning capped in the lab | 5.16 GB |
 | `d1` | [LiquidAI/d1-3B-GGUF](https://huggingface.co/LiquidAI/d1-3B-GGUF) | decision model, `/v1/systemone` | 1.67 GB |
-| `lfm-ft` | [jakeatx/LFM-2.5-8B-1B-hermes-ft](https://huggingface.co/jakeatx/LFM-2.5-8B-1B-hermes-ft) | optional instruction-tuned LFM2.5 variant | 6.17 GB |
+| `lfm-ft` | [LFM2.5-8B-A1B FT checkpoint](https://huggingface.co/jakeatx/LFM-2.5-8B-1B-hermes-ft) | optional instruction-tuned LFM2.5 variant | 6.17 GB |
 
 The optional file is called **LFM2.5-8B-A1B FT** in this repo. The upstream repo name includes the training framework, which is also the name of an agent harness, so the app does not use it. On the 100-task sample it scored 65% at 110 ms, against 85% at 594 ms for stock LFM, so it is not the default.
 

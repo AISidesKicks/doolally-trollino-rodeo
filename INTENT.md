@@ -19,7 +19,7 @@ Measured notes and the parser mistakes behind the first run are in [mds/benchmar
 | --- | --- | --- |
 | Chat classifier | [LiquidAI/LFM2.5-8B-A1B-GGUF](https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF) | 4-bit Q4_K_M, 5.16 GB |
 | Decision model | [LiquidAI/d1-3B-GGUF](https://huggingface.co/LiquidAI/d1-3B-GGUF) | 4-bit Q4_K_M, 1.67 GB |
-| Optional variant | [jakeatx/LFM-2.5-8B-1B-hermes-ft](https://huggingface.co/jakeatx/LFM-2.5-8B-1B-hermes-ft) | 4-bit Q4KXL, 6.17 GB |
+| Optional variant | [LFM2.5-8B-A1B FT checkpoint](https://huggingface.co/jakeatx/LFM-2.5-8B-1B-hermes-ft) | 4-bit Q4KXL, 6.17 GB |
 
 The optional variant is an instruction-tuned LFM2.5 checkpoint. It is referred to as **LFM2.5-8B-A1B FT** in this repo, not by the training framework name, because that name also describes an agent harness and gets confusing fast.
 
