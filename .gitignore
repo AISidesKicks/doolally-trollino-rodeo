@@ -16,6 +16,10 @@ datasets/*.parquet
 # node
 node_modules/
 
+# python
+__pycache__/
+*.py[cod]
+
 # local environment files
 .env
 .env.*
