@@ -53,7 +53,7 @@ The demo is meant to be watched, not just benchmarked. A batch is small enough t
 
 ## Dataset plan
 
-Sources shortlisted in [mds/datatets.md](mds/datatets.md):
+Sources shortlisted in [mds/datasets.md](mds/datasets.md):
 
 - [Yahoo Answers 10 Categories](https://huggingface.co/datasets/yassiracharki/Yahoo_Answers_10_categories_for_NLP) - Health, Business & Finance, Politics & Government.
 - [AG News](https://huggingface.co/datasets/fancyzhx/ag_news) - Business and Sci/Tech.
@@ -63,7 +63,7 @@ Sources shortlisted in [mds/datatets.md](mds/datatets.md):
 Rules:
 
 - **Bootstrap small.** The bootstrap run downloads only the Yahoo test split (32 MB) and the AG News test split (1.2 MB), then stops at 50 rows per class (200 total).
-- **Scale later.** Move to the full 100 x 1000 task lists only after the end-to-end demo works. A 1000-task run needs about 250 rows per class.
+- **Scale later.** Move to the full 1000-task list only after the end-to-end demo works. A 1000-task run needs about 250 rows per class.
 - **Yahoo labels are noisy.** Some rows are clearly mislabeled. That is part of the lesson: keep the source label visible and do not over-tune on 200 rows.
 - **Legal is noisy.** The Legal & Regulatory class is filtered by keywords (`court`, `lawsuit`, `compliance`, `contract` and similar), not human-labeled. Keep that caveat visible in the GUI and docs.
 - **Files stay local.** Dataset outputs go to `datasets/`, are gitignored, and are not published to GitHub Pages.
