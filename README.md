@@ -131,6 +131,7 @@ The canonical JSONL, manifest and source metadata are committed in [datasets/](d
 ## Deep dives
 
 - [mds/benchmarks.md](mds/benchmarks.md) - measured results, parser fixes and the optional fine-tune.
+- [lfm/insidellm.md](lfm/insidellm.md) - policy and content-risk classification notes from the lab LFM model.
 - [mds/datasets.md](mds/datasets.md) - source datasets, labels and license notes.
 - [mds/durable-execution.md](mds/durable-execution.md) - Pi Durable, crash recovery and replay references.
 - [INTENT.md](INTENT.md) - project intent, play modes, architecture and status.
@@ -146,6 +147,7 @@ The canonical JSONL, manifest and source metadata are committed in [datasets/](d
 | `docs/` | static GitHub Pages site for https://doolally.trollino.rodeo |
 | `lab/` | dataset builder, sampler and model downloader |
 | `mds/` | deep dives and reference lists |
+| `lfm/` | LFM-specific notes and prompt experiments |
 | `datasets/` | committed 10k pool, manifest and provenance |
 | `models/` | local GGUF weights, tracked README and placeholders |
 | `docker/` | compose stack and Node image |

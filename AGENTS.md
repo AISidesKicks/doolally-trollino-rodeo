@@ -19,6 +19,7 @@ Keep all info as very simple HTML pages.
 - `gui/` - build output directory for the GUI (never `docs/`)
 - `models/gguf/` - local GGUF weights, gitignored except the placeholder; `models/README.md` documents them
 - `mds/` - deep dives on memory systems and frameworks
+- `lfm/` - LFM-specific classification notes and prompt probes
 - `lab/` - the hands-on lab: plan and experiments (item 2 of INTENT.md)
 - `src/` - lab node.js code
 - 'tests/' - Python test code

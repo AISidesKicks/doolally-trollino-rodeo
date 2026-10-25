@@ -11,7 +11,7 @@ The point is not a perfect classifier. The point is to show:
 - how a durable workflow recovers after a hard kill,
 - which parts of the stack actually need money and which do not.
 
-Measured notes and the parser mistakes behind the first run are in [mds/benchmarks.md](mds/benchmarks.md).
+Measured notes and the parser mistakes behind the first run are in [mds/benchmarks.md](mds/benchmarks.md). Model-specific policy and content-risk notes are in [lfm/insidellm.md](lfm/insidellm.md).
 
 ## Models
 
@@ -147,6 +147,7 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 | `docker/` | container definitions, `dlly-` prefix | compose stack and Node image |
 | `lab/` | hands-on plan and experiments | dataset builder, sampler, model downloader |
 | `mds/` | deep dives and reference lists | dataset notes, durable research |
+| `lfm/` | LFM-specific notes and probes | policy and content-risk deep dive |
 | `datasets/` | curated short-topic datasets | 10k canonical pool + sources, committed |
 | `models/gguf/` | local GGUF weights, gitignored except placeholders | 2 default models, 1 optional |
 | `tests/` | Python dataset tests and Node worker tests | 12 Python, 15 Node |
