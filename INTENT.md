@@ -37,12 +37,13 @@ The demo is meant to be watched, not just benchmarked. A batch is small enough t
 
 | Mode | Tasks | Use |
 | --- | --- | --- |
-| `short` (default) | 100 | development and live demo |
-| `long` | 1000 | full run and benchmark |
+| `pilot` | 100 | development and live demo |
+| `short` | 1,000 | full run and benchmark |
+| `long` | 10,000 | full pool stress run |
 
 ### Per run
 
-1. **Build the run list.** Sample tasks from the curated datasets, shuffle them with a random seed, and persist the ordered list in SQLite. Every run gets a different order; a recovery continues the same list.
+1. **Build the run list.** Sample tasks from the canonical pool with a stratified hash sample, mix the classes, and persist the ordered list in SQLite. Every run gets a different order; a recovery continues the same list.
 2. **Process in batches of 3.** Send the same 3 texts to both models. Record the label, latency and timing per model.
 3. **Show the comparison.** After each batch, display milliseconds, seconds and how much faster the smaller model was in percent.
 4. **Pause.** Wait a few seconds so a human can read the numbers. This pause is also the random kill window.
@@ -67,9 +68,10 @@ Rules:
 - **Canonical pool.** 10,000 rows, 2,500 per class.
 - **Folds.** 8 x 1,000 rows (250 per class) plus 2,000 holdout rows (500 per class). Pilot 100, short 1,000, long 10,000.
 - **Short texts.** d1-3B context is 32,768 tokens, LFM2.5 is 128,000. Cap text at 2,000 characters (about 500 tokens). The current build has p50 444 chars, p99 1,984 chars and max 500 estimated tokens.
-- **Mixed sources.** Yahoo Answers test plus AG News train. The current build has 8,230 Yahoo rows and 1,770 AG News rows.
+- **Mixed sources.** Yahoo Answers test plus AG News train. The current build has 8,230 Yahoo rows and 1,770 AG News rows. Source repos, files and licenses are in [datasets/SOURCES.json](datasets/SOURCES.json).
 - **Heuristics, not gold labels.** Topic anchors for Medical, Politics and Financial; legal scoring for Legal. Yahoo labels are noisy and Legal is keyword-filtered. Keep the caveat visible.
-- **Files stay local.** Generated files in `datasets/` are gitignored and are not published to GitHub Pages.
+- **No first-N bias.** The canonical file is globally shuffled with a SHA-256 order key. Play batches are stratified by class with [lab/datasets/sample.py](lab/datasets/sample.py): 25 per class for 100 tasks, 250 per class for 1,000 tasks, all rows for 10,000 tasks.
+- **Dataset is committed.** The canonical JSONL and manifest are tracked so the lab runs without a rebuild. The CSV view and play batches stay local. Nothing in `datasets/` is published to GitHub Pages.
 
 Commands:
 
@@ -82,9 +84,14 @@ pixi run python lab/datasets/build.py --per-class 2500 --reuse-raw
 
 # 200-row smoke pool
 pixi run python lab/datasets/build.py --target 200 --name high-risk-200
+
+# deterministic play batches
+pixi run python lab/datasets/sample.py --mode 100
+pixi run python lab/datasets/sample.py --mode 1000 --exclude-holdout
+pixi run python lab/datasets/sample.py --mode 10000
 ```
 
-Outputs: `datasets/high-risk-10k.jsonl` (canonical), `.csv` (human view) and `.manifest.json` (stats). The builder caches downloads under `scratch/hf-cache` and never pulls the 746 MB Yahoo train split.
+Outputs: `datasets/high-risk-10k.jsonl` (canonical, tracked), `.manifest.json` (stats, tracked), `SOURCES.json` (provenance and licenses, tracked) and `.csv` (human view, local only). The builder caches downloads under `scratch/hf-cache` and never pulls the 746 MB Yahoo train split.
 
 ## Architecture
 
@@ -119,7 +126,7 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 | `docker/` | container definitions, `dlly-` prefix | empty |
 | `lab/` | hands-on plan and experiments | dataset builder + design notes |
 | `mds/` | deep dives and reference lists | dataset notes + durable research |
-| `datasets/` | curated short-topic datasets | 10k canonical pool, local only |
+| `datasets/` | curated short-topic datasets | 10k canonical pool + sources, committed |
 | `tests/` | Python test code | empty |
 | `scratch/` | logs, HF cache and crash artifacts, gitignored except `.gitkeep` | ready |
 
@@ -129,9 +136,9 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 - [x] Verify `node:sqlite` and local `npx` installs.
 - [x] Research durable execution examples: [mds/durable-execution.md](mds/durable-execution.md).
 - [x] Record the static-only rule for `docs/` and the `gui/` build directory.
-- [x] Dataset: 10,000 rows, 2,500 per class, 8 folds plus 2,000 holdout rows.
+- [x] Dataset: 10,000 rows, 2,500 per class, 8 folds plus 2,000 holdout rows, committed with source provenance.
 - [ ] SQLite schema: runs, tasks, attempts, labels, timings.
-- [ ] Node durable worker with `short` and `long` play modes.
+- [ ] Node durable worker with 100, 1,000 and 10,000 play modes.
 - [ ] llama.cpp Docker services for both models.
 - [ ] GUI: batch timing, random kill, recovery replay.
 - [ ] Trollino kill script and crash-recovery tests.

@@ -33,6 +33,13 @@ Keep all info as very simple HTML pages.
 - `.env.example` holds empty placeholders only.
 - `HF_TOKEN` is the read-only Hugging Face token. Load it into the process environment; never put it in URLs, dataset files or manifests.
 
+## Datasets
+
+- `datasets/high-risk-10k.jsonl` and `datasets/high-risk-10k.manifest.json` are tracked so the lab runs without a rebuild.
+- `datasets/SOURCES.json` records source repos, files, row counts and licenses. Update it when sources or the dataset hash change.
+- CSV exports, play batches and scratch intermediates stay local.
+- The canonical file is globally shuffled. Use `lab/datasets/sample.py` for 100 / 1,000 / 10,000 play batches; never take the first N rows as a sample.
+
 ## DLLY Python environment (isolated with pixi `dlly`)
 
 We are running inside a "pixi shell" - check it before implementing plans in code.
