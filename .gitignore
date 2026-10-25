@@ -1,3 +1,14 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# scratch artifacts
+scratch/*
+!scratch/.gitkeep
+
+# generated datasets and local caches
+datasets/*.csv
+.cache/
+
+# node
+node_modules/
