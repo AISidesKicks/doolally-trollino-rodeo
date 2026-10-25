@@ -429,6 +429,16 @@ def assign_folds(selected: list[dict], args: argparse.Namespace) -> None:
                 record["fold"] = "holdout"
 
 
+def order_hash(args: argparse.Namespace, record: dict) -> str:
+    """Stable hash order, so the file is mixed instead of grouped by fold.
+
+    The order does not depend on Python's random module, so it can be
+    reproduced by any tool that can compute SHA-256.
+    """
+    return hashlib.sha256(f"{args.seed}:order:{record['id']}".encode("utf-8")).hexdigest()
+
+
+
 def percentile(values: list[int], fraction: float) -> int:
     if not values:
         return 0
@@ -465,7 +475,6 @@ def summarize(records: list[dict]) -> dict:
 
 def write_outputs(selected: list[dict], args: argparse.Namespace, raw_counts: Counter[str], dropped: Counter[str]) -> dict:
     DATASETS_DIR.mkdir(parents=True, exist_ok=True)
-    selected.sort(key=lambda r: (r["fold"], r["id"]))
     jsonl_path = DATASETS_DIR / f"{args.name}.jsonl"
     csv_path = DATASETS_DIR / f"{args.name}.csv"
     manifest_path = DATASETS_DIR / f"{args.name}.manifest.json"
@@ -499,6 +508,7 @@ def write_outputs(selected: list[dict], args: argparse.Namespace, raw_counts: Co
         },
         "raw_counts": dict(raw_counts),
         "dropped": dict(dropped),
+        "row_order": f"global sha256 shuffle, seed {args.seed}",
         "stats": stats,
         "notes": [
             "Legal & Regulatory is keyword-filtered, not human-labeled.",
@@ -571,6 +581,7 @@ def main() -> None:
         raise SystemExit("ID collision, increase the hash prefix")
 
     assign_folds(selected, args)
+    selected = sorted(selected, key=lambda record: order_hash(args, record))
 
     with (WORK_DIR / "selected.jsonl").open("w", encoding="utf-8") as handle:
         for record in selected:

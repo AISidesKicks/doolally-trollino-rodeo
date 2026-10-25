@@ -61,15 +61,44 @@ scratch/datasets/raw/yahoo_answers.jsonl
 scratch/datasets/raw/ag_news.jsonl
 scratch/datasets/work/curated.jsonl
 scratch/datasets/work/selected.jsonl
+scratch/datasets/work/play-100.jsonl
+scratch/datasets/work/play-1000.jsonl
 ```
 
-Final data goes to `datasets/`:
+The canonical dataset is committed in `datasets/`:
 
 ```
-datasets/high-risk-10k.jsonl
-datasets/high-risk-10k.csv
-datasets/high-risk-10k.manifest.json
+datasets/high-risk-10k.jsonl          tracked
+datasets/high-risk-10k.manifest.json  tracked
+datasets/SOURCES.json                 tracked
+datasets/high-risk-10k.csv            local only
 ```
+
+The JSONL and manifest are tracked so the lab runs without a rebuild. The CSV is a convenience export and stays local. Source repos, files, row counts and license metadata are in `datasets/SOURCES.json`.
+
+## Row order and play sampling
+
+The canonical file is globally shuffled with a SHA-256 order key. The first 100 lines are not fold-0, and they are not one source or one class.
+
+Taking the first N rows is still not balanced enough for a 100-task run, so use the sampler:
+
+```bash
+# 25 rows per class, spread across the whole pool
+pixi run python lab/datasets/sample.py --mode 100
+
+# 250 rows per class, holdout excluded
+pixi run python lab/datasets/sample.py --mode 1000 --exclude-holdout
+
+# all 10,000 rows, shuffled
+pixi run python lab/datasets/sample.py --mode 10000
+
+# a clean fold batch for experiments
+pixi run python lab/datasets/sample.py --mode 1000 --fold fold-0
+```
+
+The sampler orders each class by `sha256(seed:mode:label:id)` and takes the first N. It then mixes the classes again with a second hash order. Selection is deterministic for the same seed and mode, and does not depend on the order of the input file.
+
+Play samples include the full pool by default, including the holdout. Use `--exclude-holdout` for a clean benchmark batch. The generated batch and its manifest go to `scratch/datasets/work/`.
 
 ## Commands
 
@@ -82,6 +111,11 @@ pixi run python lab/datasets/build.py --per-class 2500 --reuse-raw
 
 # small pilot pool
 pixi run python lab/datasets/build.py --target 200 --name high-risk-200
+
+# deterministic play batches
+pixi run python lab/datasets/sample.py --mode 100
+pixi run python lab/datasets/sample.py --mode 1000 --exclude-holdout
+pixi run python lab/datasets/sample.py --mode 10000
 ```
 
 `HF_TOKEN` is read from `.env` when present. It is never written to the dataset or the manifest.
@@ -96,4 +130,13 @@ The builder verifies:
 - no duplicate IDs or texts,
 - no text above `--max-chars`.
 
-The manifest records class, source and fold counts, length percentiles, the seed and the source files.
+The sampler verifies:
+
+- mode 100 produces 25 rows per class,
+- mode 1,000 produces 250 rows per class,
+- mode 10,000 produces every row,
+- the same seed and mode produce the same batch hash,
+- a class or fold filter has enough rows before it writes anything.
+
+The manifest records class, source and fold counts, length percentiles, the seed and the source files. The current dataset hash is `026a72d72ad065eeb8845676f10dc75eaf4cfc8755c194401a6ff465443c7ac8`.
+
