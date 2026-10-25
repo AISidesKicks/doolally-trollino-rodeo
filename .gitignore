@@ -6,10 +6,9 @@
 scratch/*
 !scratch/.gitkeep
 
-# generated datasets and local caches
+# generated datasets: the canonical JSONL and manifest are tracked,
+# the CSV view and parquet intermediates stay local
 datasets/*.csv
-datasets/*.jsonl
-datasets/*.manifest.json
 datasets/*.parquet
 .cache/
 
@@ -24,3 +23,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# model weights, only the placeholder stays tracked
+models/*
+!models/.gitkeep
