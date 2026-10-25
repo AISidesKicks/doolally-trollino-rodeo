@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Download the lab GGUF models directly into the project `models/` folder.
+"""Download the lab GGUF models into the project `models/gguf/` folder.
 
 The Hugging Face cache is not used as the visible location: each file is
-written to `models/<filename>` with `hf_hub_download(..., local_dir=...)`.
+written to `models/gguf/<filename>` with `hf_hub_download(..., local_dir=...)`.
 An interrupted download resumes from the `.incomplete` file on the next run.
 
 Usage:
     pixi run python lab/models/download.py --check
     pixi run python lab/models/download.py
     pixi run python lab/models/download.py --only d1
+    pixi run python lab/models/download.py --only lfm-ft
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODELS_DIR = PROJECT_ROOT / "models"
+GGUF_DIR = MODELS_DIR / "gguf"
 ENV_FILE = PROJECT_ROOT / ".env"
 
 MODELS = {
@@ -33,6 +35,12 @@ MODELS = {
         "repo_id": "LiquidAI/d1-3B-GGUF",
         "filename": "d1-3B-Q4_K_M.gguf",
         "role": "decision model, /v1/systemone endpoint",
+    },
+    "lfm-ft": {
+        "repo_id": "jakeatx/LFM-2.5-8B-1B-hermes-ft",
+        "filename": "gguf/LFM-2.5-8B-1B-Hermes-Tuned-Q4KXL.gguf",
+        "target": "LFM2.5-8B-A1B-FT-Q4KXL.gguf",
+        "role": "optional instruction-tuned LFM2.5 variant, same chat endpoint",
     },
 }
 
@@ -82,7 +90,7 @@ def download_one(api, key: str, spec: dict, verify: bool) -> dict:
 
     repo_id = spec["repo_id"]
     filename = spec["filename"]
-    target = MODELS_DIR / filename
+    target = GGUF_DIR / spec.get("target", Path(filename).name)
 
     print(f"\n== {key}: {filename}")
     print(f"   repo: {repo_id}")
@@ -97,14 +105,15 @@ def download_one(api, key: str, spec: dict, verify: bool) -> dict:
             hf_hub_download(
                 repo_id=repo_id,
                 filename=filename,
-                local_dir=MODELS_DIR,
+                local_dir=GGUF_DIR,
                 token=os.environ.get("HF_TOKEN") or None,
             )
         )
         actual = path.stat().st_size
         if actual != size:
             raise SystemExit(f"size mismatch for {path}: {actual} != {size}")
-        target = path
+        if path.resolve() != target.resolve():
+            path.replace(target)
         print(f"   status: downloaded to {target}")
 
     result = {
@@ -136,6 +145,7 @@ def main() -> None:
 
     load_env(ENV_FILE)
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    GGUF_DIR.mkdir(parents=True, exist_ok=True)
 
     if importlib.util.find_spec("hf_xet"):
         os.environ.setdefault("HF_XET_HIGH_PERFORMANCE", "1")
@@ -143,13 +153,13 @@ def main() -> None:
     from huggingface_hub import HfApi
 
     api = HfApi(token=os.environ.get("HF_TOKEN") or None)
-    keys = args.only or list(MODELS)
+    keys = args.only or ["lfm", "d1"]
 
     if args.check:
         for key in keys:
             spec = MODELS[key]
             size, sha = remote_info(api, spec["repo_id"], spec["filename"])
-            target = MODELS_DIR / spec["filename"]
+            target = GGUF_DIR / spec.get("target", Path(spec["filename"]).name)
             local = target.stat().st_size if target.exists() else 0
             print(f"{key}: {spec['filename']}")
             print(f"  repo:   {spec['repo_id']}")
