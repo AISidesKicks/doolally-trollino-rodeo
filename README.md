@@ -4,6 +4,8 @@ A durable high-risk text classification lab with two small local models, a live 
 
 **Live site:** https://doolally.trollino.rodeo
 
+**Source:** https://github.com/AISidesKicks/doolally-trollino-rodeo
+
 ![The DLLY lab dashboard](docs/assets/lab-dashboard.webp)
 
 Trollino posts the bait. Doolally stamps the ban. Both trolls read the same short texts, and SQLite keeps the score even when Trollino pulls the plug.
