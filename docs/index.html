@@ -495,6 +495,11 @@
         font-size: 0.76rem;
       }
 
+      .subhead {
+        margin: 30px 0 12px;
+        font-size: 1.15rem;
+      }
+
       .callout strong {
         color: var(--fire);
       }
@@ -681,74 +686,142 @@
           <img
             src="assets/lab-dashboard.webp"
             width="1200"
-            height="1583"
+            height="1917"
             loading="lazy"
-            alt="The DLLY lab dashboard showing 100 of 100 tasks, Doolally at 80 percent accuracy and Trollino at 85 percent, with a 96 percent speed win for the small model."
+            alt="The DLLY lab dashboard showing 10,000 of 10,000 tasks, Doolally at 78.9 percent accuracy and Trollino at 81.9 percent, with a 95 percent speed win for the small model."
           />
           <figcaption>
-            A real 100-task run: Doolally 80% at 594 ms, Trollino 85% at 26 ms, 13 disagreements
-            and 34 committed batches.
+            A real 10,000-task run: Doolally 78.9% at 511 ms, Trollino 81.9% at 24 ms,
+            1,432 disagreements and 3,334 committed batches.
           </figcaption>
         </figure>
       </section>
 
       <section id="results">
         <div class="section-head">
-          <h2>Real 100-task result</h2>
-          <p>Mode 100, seed 42, same play sample, retry 1, zero provider errors.</p>
+          <h2>Three sample sizes</h2>
+          <p>100 clean, 1,000 clean and 10,000 full pool. Same seed, retry 1, zero provider errors.</p>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Model</th>
-                <th>Role</th>
-                <th>Accuracy</th>
-                <th>Median latency</th>
-                <th>Speed</th>
-                <th>Notes</th>
+                <th>Sample</th>
+                <th>LFM accuracy</th>
+                <th>d1 accuracy</th>
+                <th>LFM median</th>
+                <th>d1 median</th>
+                <th>Disagreements</th>
+                <th>Active time</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>LFM2.5-8B-A1B</strong><small>Q4_K_M, 5.16 GB</small></td>
-                <td>Doolally, moderator</td>
-                <td class="good">80-85%</td>
-                <td>594 ms</td>
-                <td>1x</td>
-                <td>Reasoning capped at 128 tokens</td>
+                <td><strong>100 clean</strong><small>34 batches</small></td>
+                <td>81.0%</td>
+                <td class="good">85.0%</td>
+                <td>593 ms</td>
+                <td>27 ms</td>
+                <td>13</td>
+                <td>1.0 min</td>
               </tr>
               <tr>
-                <td><strong>d1-3B</strong><small>Q4_K_M, 1.67 GB</small></td>
-                <td>Trollino, author</td>
-                <td class="good">85%</td>
-                <td>26 ms</td>
-                <td class="good">22x faster</td>
-                <td>Decision model, one forward pass</td>
+                <td><strong>1,000 clean</strong><small>334 batches</small></td>
+                <td>77.8%</td>
+                <td class="good">81.8%</td>
+                <td>606 ms</td>
+                <td>27 ms</td>
+                <td>152</td>
+                <td>10.3 min</td>
               </tr>
               <tr>
-                <td><strong>LFM2.5-8B-A1B FT</strong><small>Q4KXL, 6.17 GB, optional</small></td>
-                <td>Speed variant</td>
-                <td class="bad">65%</td>
-                <td>110 ms</td>
-                <td>5x faster</td>
-                <td>Not better here, so not the default</td>
+                <td><strong>10,000 full</strong><small>3,334 batches</small></td>
+                <td>78.9%</td>
+                <td class="good">81.9%</td>
+                <td>511 ms</td>
+                <td>24 ms</td>
+                <td>1,432</td>
+                <td>91.2 min</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap" style="margin-top: 14px">
+          <table>
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>100 LFM</th>
+                <th>100 d1</th>
+                <th>1,000 LFM</th>
+                <th>1,000 d1</th>
+                <th>10,000 LFM</th>
+                <th>10,000 d1</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Politics &amp; Elections</td>
+                <td>81.5%</td>
+                <td>86.2%</td>
+                <td>72.3%</td>
+                <td>78.2%</td>
+                <td>74.2%</td>
+                <td>79.2%</td>
+              </tr>
+              <tr>
+                <td>Medical &amp; Health</td>
+                <td>92.3%</td>
+                <td>94.1%</td>
+                <td>93.0%</td>
+                <td>92.7%</td>
+                <td>93.3%</td>
+                <td>92.8%</td>
+              </tr>
+              <tr>
+                <td>Legal &amp; Regulatory</td>
+                <td>73.1%</td>
+                <td>75.6%</td>
+                <td>65.1%</td>
+                <td>69.2%</td>
+                <td class="bad">66.2%</td>
+                <td class="warn">69.7%</td>
+              </tr>
+              <tr>
+                <td>Financial &amp; Crypto</td>
+                <td>76.2%</td>
+                <td>82.6%</td>
+                <td>81.1%</td>
+                <td>85.9%</td>
+                <td>82.0%</td>
+                <td>84.6%</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p class="note">
-          Accuracy is measured against the dataset label. The labels are heuristic, so treat this as
-          a lab result, not a leaderboard. LFM scored 85% in a host run and 80% in the container run,
-          which is why the table shows a range. The optional fine-tune was tested because it follows
-          instructions more directly. It was faster, but 15 to 20 points less accurate on this
-          sample, so stock LFM stays the default.
+          F1 per class. The 100 and 1,000 runs exclude the holdout. The 10,000 run is the full pool
+          and includes it by design. There were 200, 2,000 and 20,000 attempts, with zero errors and
+          zero retries at every size.
+        </p>
+        <p class="note">
+          Legal is the hard class at every size. On the 10,000 run LFM predicted Legal 2,829 times
+          for 2,500 expected rows and pulled 559 Politics rows into it. d1 predicted Legal 2,266
+          times and split Legal and Politics more evenly. Medical is the easiest class for both.
         </p>
         <div class="callout">
-          <strong>The interesting part:</strong> the 3B decision model matched or beat the 8B chat
-          model on this narrow task, while using one fifth of the disk and answering in milliseconds.
-          Narrow classification does not always need a large generative model.
+          <strong>The interesting part:</strong> the 3B decision model beat the 8B chat model by 4.0
+          points at 100 and 1,000 tasks, and by 3.0 points at 10,000, while answering about 22x
+          faster. That is about 95% less latency. On this narrow task, more parameters did not buy
+          accuracy.
         </div>
+        <h3 class="subhead">100-task pilot and optional FT</h3>
+        <p class="note">
+          The clean 100 pilot is in the table above. The optional LFM2.5-8B-A1B FT was tested on the
+          100-task full-pool pilot at 65% and 110 ms. It was faster than stock LFM but less accurate,
+          so it is not the default. Accuracy is measured against the dataset label, and those labels
+          are heuristic. Treat this as a lab result, not a production benchmark.
+        </p>
       </section>
 
       <section id="recovery">
@@ -820,6 +893,25 @@
 docker compose -f docker/compose.yaml up -d --build
 npm run server
 # open http://127.0.0.1:3030</pre>
+          <h3 class="subhead">Three sample sizes</h3>
+          <p>
+            100 is the pilot, 1,000 is the clean benchmark and 10,000 is the full-pool stress run.
+            The 1,000 mode can exclude the holdout. The 10,000 mode includes it by definition.
+          </p>
+          <pre># clean 1,000-task benchmark
+curl -sS -X POST http://127.0.0.1:3030/api/runs \
+  -H 'content-type: application/json' \
+  -d '{"mode":1000,"provider":"llama","batchSize":3,"pauseMs":0,"retries":1,"excludeHoldout":true}'
+
+# full 10,000-task stress run
+curl -sS -X POST http://127.0.0.1:3030/api/runs \
+  -H 'content-type: application/json' \
+  -d '{"mode":10000,"provider":"llama","batchSize":3,"pauseMs":0,"retries":1,"excludeHoldout":false}'</pre>
+          <p class="note">
+            Or use the dashboard: choose the size, set pause 0 for a benchmark, and press Send the
+            trolls. The 1,000 run takes about 10 minutes on the RTX 4070. The 10,000 run takes about
+            about 91 minutes.
+          </p>
           <p class="note">
             The mock provider runs without Docker and without models, so the full queue, kill and
             resume flow can be demonstrated offline first. Phoenix at
