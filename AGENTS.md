@@ -17,6 +17,7 @@ Keep all info as very simple HTML pages.
 
 - `docs/` - static GitHub Pages site only, starting at `docs/index.html` (HTML pages and images, nothing dynamic)
 - `gui/` - build output directory for the GUI (never `docs/`)
+- `models/gguf/` - local GGUF weights, gitignored except the placeholder; `models/README.md` documents them
 - `mds/` - deep dives on memory systems and frameworks
 - `lab/` - the hands-on lab: plan and experiments (item 2 of INTENT.md)
 - `src/` - lab node.js code

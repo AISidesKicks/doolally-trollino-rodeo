@@ -11,14 +11,31 @@ The point is not a perfect classifier. The point is to show:
 - how a durable workflow recovers after a hard kill,
 - which parts of the stack actually need money and which do not.
 
+Measured notes and the parser mistakes behind the first run are in [mds/benchmarks.md](mds/benchmarks.md).
+
 ## Models
 
 | Role | Model | Size |
 | --- | --- | --- |
-| LLM | [LiquidAI/LFM2.5-8B-A1B-GGUF](https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF) | 4-bit Q4_K_M, 5.16 GB |
-| SystemOne | [LiquidAI/d1-3B-GGUF](https://huggingface.co/LiquidAI/d1-3B-GGUF) | 4-bit Q4_K_M, 1.67 GB |
+| Chat classifier | [LiquidAI/LFM2.5-8B-A1B-GGUF](https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF) | 4-bit Q4_K_M, 5.16 GB |
+| Decision model | [LiquidAI/d1-3B-GGUF](https://huggingface.co/LiquidAI/d1-3B-GGUF) | 4-bit Q4_K_M, 1.67 GB |
+| Optional variant | [jakeatx/LFM-2.5-8B-1B-hermes-ft](https://huggingface.co/jakeatx/LFM-2.5-8B-1B-hermes-ft) | 4-bit Q4KXL, 6.17 GB |
 
-Both models are served by llama.cpp 7.x in Docker and are compared on the same tasks.
+The optional variant is an instruction-tuned LFM2.5 checkpoint. It is referred to as **LFM2.5-8B-A1B FT** in this repo, not by the training framework name, because that name also describes an agent harness and gets confusing fast.
+
+All models are served by llama.cpp in Docker (server 0.7.0-dev, build 11870) and compared on the same tasks.
+
+## Measured baseline
+
+Mode 100, seed 42, same stratified sample, retry 1, zero provider errors:
+
+| Model | Accuracy | Median latency | Relative speed |
+| --- | --- | --- | --- |
+| LFM2.5-8B-A1B, reasoning capped at 128 tokens | 80-85% | 594 ms | 1x |
+| d1-3B, one forward pass | 85% | 26 ms | 22x faster |
+| LFM2.5-8B-A1B FT, optional | 65% | 110 ms | 5x faster |
+
+The 3B decision model matched or beat the 8B chat model on this narrow task at a fraction of the latency and disk. LFM scored 85% in a host run and 80% in the container run, so report the range rather than a single number. LFM sampling is not fully deterministic, even with the same play sample. The optional fine-tune was faster than stock LFM but 15 to 20 points less accurate, so it is not the default. These are heuristic labels, not gold annotations.
 
 ## Target classes
 
@@ -44,13 +61,13 @@ The demo is meant to be watched, not just benchmarked. A batch is small enough t
 ### Per run
 
 1. **Build the run list.** Sample tasks from the canonical pool with a stratified hash sample, mix the classes, and persist the ordered list in SQLite. Every run gets a different order; a recovery continues the same list.
-2. **Process in batches of 3.** Send the same 3 texts to both models. Record the label, latency and timing per model.
+2. **Process in batches of 3.** Send the same 3 texts to both models. Record the label, latency and timing per model. An invalid label gets one retry, so a bad batch can take twice as long.
 3. **Show the comparison.** After each batch, display milliseconds, seconds and how much faster the smaller model was in percent.
 4. **Pause.** Wait a few seconds so a human can read the numbers. This pause is also the random kill window.
 5. **Kill window.** Trollino may SIGKILL the worker at a batch boundary. Killing between batches keeps the demo about restart recovery, not about corrupting SQLite mid-write.
-6. **Recovery screen.** If killed, show a funny "Trollino killed dlly" screen with tasks done, tasks pending, the last committed batch and the replay time.
-7. **Replay and continue.** The GUI replays recovered batches with a delay, then continues with the next 3 tasks.
-8. **Finish.** Show totals per model: tasks, mean and median latency, percent difference, and label disagreements.
+6. **Recovery screen.** If killed, show a funny "Trollino pulled the plug" screen with tasks done, tasks pending and the last committed batch.
+7. **Replay and continue.** The GUI shows the recovered batches from SQLite, then continues with the next 3 tasks.
+8. **Finish.** Show totals per model: tasks, mean and median latency, speed difference, and label disagreements.
 
 ## Dataset plan
 
@@ -99,35 +116,38 @@ Outputs: `datasets/high-risk-10k.jsonl` (canonical, tracked), `.manifest.json` (
 browser GUI (built into gui/)
         |
         v
-Node 24 worker  --  Pi Durable  --  SQLite (state, task list, checkpoints)
+Node 24 worker  --  durable runner  --  SQLite (state, task list, checkpoints)
         |
         +--> llama.cpp server (LFM2.5-8B-A1B)
         +--> llama.cpp server (d1-3B)
+        +--> optional llama.cpp server (LFM2.5-8B-A1B FT)
         |
-        +--> Arize Phoenix (traces)
+        +--> Arize Phoenix (service ready, trace wiring still open)
 
 Python flow (pixi dlly)  --  dataset sampling and preparation
 ```
 
 - **Node 24 worker** runs the classification batches and the durable workflow. Node 24 is required for built-in `node:sqlite`.
-- **Pi Durable** commits a checkpoint before work is shown and resumes unfinished tasks after restart.
-- **SQLite** is the single source of truth for the task list, labels and recovery state.
-- **GUI** is a separate app; its build output goes to `gui/`.
-- **Docker** runs the models, Phoenix and the lab services. All resources use the `dlly-` prefix.
+- **Durable runner** commits a batch to SQLite before the next batch starts, and resumes from the first uncommitted batch after a restart. Pi Durable is the design inspiration; this lab uses a small local runner so the recovery is visible in the code.
+- **SQLite** is the single source of truth for the task list, labels, attempts and recovery state.
+- **GUI** is a separate app; its build output goes to `gui/`. It is a plain HTML, CSS and JS build with no framework.
+- **Docker** runs the models, Phoenix and the lab service. All resources use the `dlly-` prefix.
 - **Python** (pixi `dlly`) prepares datasets. It does not run the live demo.
 
 ## Repository layout
 
 | Path | Role | State |
 | --- | --- | --- |
-| `docs/` | static GitHub Pages site only (HTML pages and images) | `index.html` empty, `CNAME` set |
-| `gui/` | build output directory for the GUI | empty |
-| `src/` | Node.js lab code | not created yet |
-| `docker/` | container definitions, `dlly-` prefix | empty |
-| `lab/` | hands-on plan and experiments | dataset builder + design notes |
-| `mds/` | deep dives and reference lists | dataset notes + durable research |
+| `docs/` | static GitHub Pages site only (HTML pages and images) | project page, troll art, `CNAME` |
+| `gui/` | build output directory for the GUI, gitignored | generated by `npm run build:gui` |
+| `src/` | Node 24 worker, server, providers, GUI source | durable runner, llama and mock providers |
+| `src/gui/` | GUI source, built into `gui/` | plain HTML, CSS and JS |
+| `docker/` | container definitions, `dlly-` prefix | compose stack and Node image |
+| `lab/` | hands-on plan and experiments | dataset builder, sampler, model downloader |
+| `mds/` | deep dives and reference lists | dataset notes, durable research |
 | `datasets/` | curated short-topic datasets | 10k canonical pool + sources, committed |
-| `tests/` | Python test code | empty |
+| `models/gguf/` | local GGUF weights, gitignored except placeholders | 2 default models, 1 optional |
+| `tests/` | Python dataset tests and Node worker tests | 12 Python, 13 Node |
 | `scratch/` | logs, HF cache and crash artifacts, gitignored except `.gitkeep` | ready |
 
 ## Plan and status
@@ -137,21 +157,39 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 - [x] Research durable execution examples: [mds/durable-execution.md](mds/durable-execution.md).
 - [x] Record the static-only rule for `docs/` and the `gui/` build directory.
 - [x] Dataset: 10,000 rows, 2,500 per class, 8 folds plus 2,000 holdout rows, committed with source provenance.
-- [ ] SQLite schema: runs, tasks, attempts, labels, timings.
-- [ ] Node durable worker with 100, 1,000 and 10,000 play modes.
-- [ ] llama.cpp Docker services for both models.
-- [ ] GUI: batch timing, random kill, recovery replay.
-- [ ] Trollino kill script and crash-recovery tests.
-- [ ] Arize Phoenix tracing.
-- [ ] Static project page in `docs/index.html`.
+- [x] SQLite schema: runs, tasks, attempts, batches, labels, timings and retries.
+- [x] Node durable worker with 100, 1,000 and 10,000 play modes.
+- [x] llama.cpp Docker services for LFM2.5-8B-A1B and d1-3B, with an optional fine-tune profile.
+- [x] GUI: batch timing, live scoreboard, random kill, recovery screen and resume.
+- [x] Trollino kill path and crash-recovery tests with zero duplicate attempts.
+- [x] One retry cycle for invalid labels, recorded per attempt.
+- [x] Node tests for sampling parity, mock runs, retries and API recovery.
+- [x] Static project page in `docs/index.html`.
+- [ ] Arize Phoenix tracing: the service runs in `dlly-phoenix`; worker span export is still open.
 
 ## Infrastructure
 
 Docker, all resources prefixed `dlly-`:
 
-- llama.cpp server 7.x
-- Node 24.x for Pi Durable and the GUI
-- Arize Phoenix (traces)
+- `dlly-llama-lfm`: LFM2.5-8B-A1B on port 8081
+- `dlly-llama-d1`: d1-3B on port 8082
+- `dlly-llama-lfm-ft`: optional LFM fine-tune on port 8083, profile `lfm-ft`
+- `dlly-phoenix`: Arize Phoenix on port 6006, OTLP on 4317
+- `dlly-lab`: Node 24 server and worker on port 3030
+- network `dlly-net`, volumes `dlly-lab-data` and `dlly-phoenix-data`
+
+```bash
+# default models and lab
+docker compose -f docker/compose.yaml up -d --build
+
+# optional fine-tune instead of stock LFM (stop lfm first on a 12 GB GPU)
+docker compose -f docker/compose.yaml stop llama-lfm
+docker compose -f docker/compose.yaml --profile lfm-ft up -d llama-lfm-ft
+
+# local GUI without Docker
+npm run build:gui
+npm run server
+```
 
 Python tooling runs in the pixi `dlly` environment. Node packages are installed locally with `npx`/`npm`, never globally.
 
