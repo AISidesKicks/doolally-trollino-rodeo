@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "name": "high-risk-10k",
+    "file": "high-risk-10k.jsonl",
+    "manifest": "high-risk-10k.manifest.json",
+    "rows": 10000,
+    "per_class": 2500,
+    "size_bytes": 8902077,
+    "sha256": "026a72d72ad065eeb8845676f10dc75eaf4cfc8755c194401a6ff465443c7ac8",
+    "generated_at": "2026-10-25T09:31:45.495936+00:00"
+  },
+  "builder": {
+    "script": "../lab/datasets/build.py",
+    "sampler": "../lab/datasets/sample.py",
+    "seed": 42,
+    "max_chars": 2000,
+    "min_chars": 40,
+    "row_order": "global sha256 shuffle, seed 42",
+    "folds": {
+      "experiment": "8 x 1000 rows, 250 per class each",
+      "holdout": "2000 rows, 500 per class",
+      "play_modes": {
+        "100": "25 rows per class, stratified across the whole pool",
+        "1000": "250 rows per class, stratified across the whole pool",
+        "10000": "all 10000 rows, shuffled"
+      }
+    }
+  },
+  "sources": [
+    {
+      "id": "yahoo_answers",
+      "name": "Yahoo Answers 10 Categories for NLP",
+      "repo_id": "yassiracharki/Yahoo_Answers_10_categories_for_NLP",
+      "repo_type": "dataset",
+      "url": "https://huggingface.co/datasets/yassiracharki/Yahoo_Answers_10_categories_for_NLP",
+      "files_used": [
+        "test.csv"
+      ],
+      "rows_used": 8230,
+      "rows_by_label": {
+        "Medical & Health": 2500,
+        "Politics & Elections": 2500,
+        "Financial & Crypto": 2000,
+        "Legal & Regulatory": 1230
+      },
+      "declared_license": "Apache-2.0",
+      "license_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "attribution": "Yahoo Answers 10 Categories for NLP, packaged by yassiracharki on Hugging Face.",
+      "notes": "The dataset card declares Apache-2.0. The rows are derived from Yahoo Answers user content, so upstream Yahoo terms may still apply. Labels are noisy and several rows were filtered by the topic anchors in the builder."
+    },
+    {
+      "id": "ag_news",
+      "name": "AG News",
+      "repo_id": "fancyzhx/ag_news",
+      "repo_type": "dataset",
+      "url": "https://huggingface.co/datasets/fancyzhx/ag_news",
+      "files_used": [
+        "data/train-00000-of-00001.parquet"
+      ],
+      "rows_used": 1770,
+      "rows_by_label": {
+        "Legal & Regulatory": 1270,
+        "Financial & Crypto": 500,
+        "Medical & Health": 0,
+        "Politics & Elections": 0
+      },
+      "declared_license": "unknown",
+      "license_url": null,
+      "attribution": "AG News, introduced by Xiang Zhang, Junbo Zhao and Yann LeCun (2015), packaged by fancyzhx on Hugging Face. Paper: https://arxiv.org/abs/1509.01626",
+      "notes": "The Hugging Face dataset card declares license: unknown. These 1770 short news rows are included for educational use with attribution. Review the terms before commercial use, or rebuild without AG News if you need a single clear license."
+    }
+  ],
+  "license_summary": {
+    "status": "mixed",
+    "summary": "Yahoo Answers rows are declared Apache-2.0 by the dataset card. AG News rows have no declared license.",
+    "commercial_use": "Review AG News terms before commercial use.",
+    "redistribution": "The canonical JSONL is committed with source attribution. If you republish it, keep this file and the source links with it."
+  },
+  "labels": {
+    "classes": [
+      "Politics & Elections",
+      "Medical & Health",
+      "Legal & Regulatory",
+      "Financial & Crypto"
+    ],
+    "method": "heuristic, not human-labeled",
+    "caveats": [
+      "Legal & Regulatory is keyword-filtered, not a gold label.",
+      "Yahoo Answers source labels are noisy.",
+      "Medical, Politics and Financial rows must match a topic anchor.",
+      "The dataset is for an educational lab, not for production moderation."
+    ]
+  },
+  "sampling": {
+    "method": "stratified sha256 hash sample",
+    "default_seed": 42,
+    "why": "Taking the first N rows can pick one fold, one source or one class. The sampler orders each class by a stable hash and takes the first N per class.",
+    "holdout": "Play samples include the full pool by default. Use --exclude-holdout for a clean benchmark batch.",
+    "command": "pixi run python lab/datasets/sample.py --mode 100"
+  },
+  "verification": {
+    "checks": [
+      "10000 rows and 2500 rows per class",
+      "8 folds x 1000 rows, 250 per class per fold",
+      "2000 holdout rows, 500 per class",
+      "10000 unique ids and 10000 unique texts",
+      "maximum text length 2000 characters",
+      "play mode 100 has exactly 25 rows per class",
+      "play mode 1000 has exactly 250 rows per class",
+      "play mode 10000 has all 10000 rows",
+      "sample selection is deterministic for the same seed and mode"
+    ],
+    "dataset_sha256": "026a72d72ad065eeb8845676f10dc75eaf4cfc8755c194401a6ff465443c7ac8"
+  }
+}
