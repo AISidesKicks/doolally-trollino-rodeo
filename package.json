@@ -1,0 +1,17 @@
+{
+  "name": "dlly-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Durable high-risk topical context classification lab",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build:gui": "node src/build-gui.js",
+    "sample": "node src/sample-cli.js",
+    "server": "node src/server.js",
+    "test": "node --test tests/*.test.js",
+    "worker": "node src/worker.js"
+  }
+}
