@@ -461,6 +461,26 @@
         background: rgb(255 155 69 / 6%);
       }
 
+      .shot {
+        margin: 0;
+        padding: 9px;
+        border: 1px solid var(--line-bright);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 24px 54px rgb(0 0 0 / 38%);
+      }
+
+      .shot img {
+        display: block;
+        border-radius: 12px;
+      }
+
+      .shot figcaption {
+        padding: 9px 6px 2px;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
       .callout strong {
         color: var(--fire);
       }
@@ -538,6 +558,7 @@
         <nav aria-label="Sections">
           <a href="#trolls">The trolls</a>
           <a href="#how">How it works</a>
+          <a href="#dashboard">Dashboard</a>
           <a href="#results">Results</a>
           <a href="#recovery">Recovery</a>
           <a href="#data">Data</a>
@@ -632,6 +653,29 @@
             <p>Each batch commits to SQLite before the next starts. A hard kill costs one batch, not the run.</p>
           </li>
         </ol>
+      </section>
+
+      <section id="dashboard">
+        <div class="section-head">
+          <h2>The live dashboard</h2>
+          <p>
+            Plain HTML, CSS and JS. No framework, no build server, no data leaves the machine.
+            The local app runs at <code>http://127.0.0.1:3030</code>.
+          </p>
+        </div>
+        <figure class="shot">
+          <img
+            src="assets/lab-dashboard.webp"
+            width="1200"
+            height="1583"
+            loading="lazy"
+            alt="The DLLY lab dashboard showing 100 of 100 tasks, Doolally at 80 percent accuracy and Trollino at 85 percent, with a 96 percent speed win for the small model."
+          />
+          <figcaption>
+            A real 100-task run: Doolally 80% at 594 ms, Trollino 85% at 26 ms, 13 disagreements
+            and 34 committed batches.
+          </figcaption>
+        </figure>
       </section>
 
       <section id="results">
