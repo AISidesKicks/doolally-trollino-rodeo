@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Don't feed the trolls. A durable high-risk topical context classification lab with two small local models."
+    />
+    <title>Don't feed the trolls - DLLY lab</title>
+    <link rel="preload" href="assets/duo-doolally-trollino.webp" as="image" type="image/webp" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the lab</a>
+
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="DLLY lab home">
+        <span class="brand-mark" aria-hidden="true">DfT</span>
+        <span class="brand-text">
+          <strong>DLLY lab</strong>
+          <small>don't feed the trolls</small>
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Sections">
+        <a href="#lab">Lab</a>
+        <a href="#board">Scoreboard</a>
+        <a href="#history">Runs</a>
+        <a href="#logs">Logs</a>
+      </nav>
+      <span class="conn-pill" id="conn-pill" data-tone="muted">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="conn-text">connecting</span>
+      </span>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="kicker">High-risk topical context lab</p>
+          <h1>Don't feed <span class="rainbow">the trolls.</span></h1>
+          <p class="lede">
+            Trollino posts the bait. Doolally stamps the ban. Two small local models read the
+            same short texts, and SQLite keeps the score even when Trollino pulls the plug.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#lab">Start a run</a>
+            <a class="btn btn-ghost" href="#board">See the scoreboard</a>
+          </div>
+          <ul class="hero-facts">
+            <li><strong>10,000</strong><span>curated texts</span></li>
+            <li><strong>4</strong><span>high-risk classes</span></li>
+            <li><strong>2</strong><span>local models</span></li>
+            <li><strong>0</strong><span>duplicates after a kill</span></li>
+          </ul>
+        </div>
+        <figure class="hero-art">
+          <img
+            src="assets/duo-doolally-trollino.webp"
+            srcset="
+              assets/duo-doolally-trollino-800.webp 800w,
+              assets/duo-doolally-trollino.webp     1600w
+            "
+            sizes="(max-width: 980px) 100vw, 56vw"
+            width="1600"
+            height="893"
+            alt="Doolally the moderator in a safety vest holds a BAN sign while Trollino the author, with rainbow hair, types on a stone laptop with BAIT attached."
+          />
+          <figcaption>
+            Doolally (moderator) and Trollino (author) disagree about everything, especially your
+            queue.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="lab-grid" id="lab" aria-labelledby="lab-title">
+        <div class="panel controls-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">The bait button</p>
+              <h2 id="lab-title">Run the queue</h2>
+            </div>
+            <span class="run-chip" id="active-run-chip">no run selected</span>
+          </div>
+
+          <form id="run-form" class="run-form">
+            <fieldset class="field">
+              <legend>Play mode</legend>
+              <div class="segmented" role="radiogroup" aria-label="Play mode">
+                <label>
+                  <input type="radio" name="mode" value="100" checked />
+                  <span><strong>100</strong><small>pilot</small></span>
+                </label>
+                <label>
+                  <input type="radio" name="mode" value="1000" />
+                  <span><strong>1,000</strong><small>short</small></span>
+                </label>
+                <label>
+                  <input type="radio" name="mode" value="10000" />
+                  <span><strong>10,000</strong><small>full pool</small></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field">
+              <legend>Who is talking</legend>
+              <div class="segmented" role="radiogroup" aria-label="Provider">
+                <label>
+                  <input type="radio" name="provider" value="mock" checked />
+                  <span><strong>Mock</strong><small>offline demo</small></span>
+                </label>
+                <label>
+                  <input type="radio" name="provider" value="llama" />
+                  <span><strong>llama.cpp</strong><small>real models</small></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="field-row">
+              <label class="field">
+                <span>Batch size</span>
+                <input id="batch-size" name="batchSize" type="number" min="1" max="12" value="3" />
+              </label>
+              <label class="field">
+                <span>Pause between batches (ms)</span>
+                <input id="pause-ms" name="pauseMs" type="number" min="0" max="60000" step="250" value="2500" />
+              </label>
+              <label class="field">
+                <span>Seed</span>
+                <input id="seed" name="seed" type="number" min="0" step="1" value="42" />
+              </label>
+            </div>
+
+            <label class="check">
+              <input id="exclude-holdout" name="excludeHoldout" type="checkbox" />
+              <span>
+                Keep the holdout out
+                <small>Use this for a clean benchmark batch. The default demo mixes the full pool.</small>
+              </span>
+            </label>
+
+            <label class="check">
+              <input id="retries" name="retries" type="checkbox" checked />
+              <span>
+                Retry a failed label once
+                <small>One extra attempt per model and task. It can double the time on a bad batch.</small>
+              </span>
+            </label>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" id="start-btn" type="submit">
+                Send the trolls
+              </button>
+              <button class="btn btn-fire" id="kill-btn" type="button" disabled>
+                Trollino pulls the plug
+              </button>
+              <button class="btn btn-ghost" id="resume-btn" type="button" disabled>
+                Doolally resumes
+              </button>
+            </div>
+            <p class="form-note" id="form-note" role="status">
+              A run commits each batch before the next one starts. Kill it at a boundary and
+              resume from SQLite.
+            </p>
+          </form>
+        </div>
+
+        <aside class="panel how-panel" aria-labelledby="how-title">
+          <p class="eyebrow">How the trick works</p>
+          <h2 id="how-title">Bait, ban, recover</h2>
+          <ol class="steps">
+            <li>
+              <span class="step-num">1</span>
+              <div>
+                <strong>Stratified bait</strong>
+                <p>Each class is hash-sampled across the whole pool, then mixed. Never the first N rows.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">2</span>
+              <div>
+                <strong>Two opinions</strong>
+                <p>Doolally is the 8B moderator. Trollino is the 3B system-one gut reaction. Same texts.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">3</span>
+              <div>
+                <strong>Durable punch</strong>
+                <p>Every batch commits to SQLite first. A hard kill costs one batch, not the run.</p>
+              </div>
+            </li>
+          </ol>
+          <div class="troll-quote" id="troll-quote" aria-live="polite">
+            <span class="quote-mark" aria-hidden="true">"</span>
+            <p>Trollino is warming up the bait. Doolally is checking the banhammer.</p>
+          </div>
+          <div class="kill-tip">
+            <strong>Trollino's favourite trick</strong>
+            <p>
+              Kill the worker after the first batch. The recovery screen should show 3 tasks done,
+              97 pending and no duplicate attempts after the resume.
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="run-strip" aria-labelledby="progress-title">
+        <div class="run-strip-head">
+          <div>
+            <p class="eyebrow">Current run</p>
+            <h2 id="progress-title">Queue progress</h2>
+          </div>
+          <div class="status-wrap">
+            <span class="status-pill" id="status-pill" data-status="pending">queued</span>
+            <span class="run-id" id="run-id">no run yet</span>
+          </div>
+        </div>
+
+        <div class="progress" role="progressbar" aria-labelledby="progress-title" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress">
+          <span id="progress-fill" style="width: 0%"></span>
+        </div>
+        <div class="progress-meta">
+          <span id="progress-text">0 / 0 tasks</span>
+          <span id="batch-text">0 batches committed</span>
+          <span id="elapsed-text">0s elapsed</span>
+          <span id="rate-text">0 tasks/s</span>
+        </div>
+
+        <div class="recovery-banner" id="recovery-banner" hidden>
+          <img src="assets/trollino-author.webp" alt="" width="72" height="72" />
+          <div>
+            <strong id="recovery-title">Trollino pulled the plug.</strong>
+            <p id="recovery-copy">SQLite still has the committed batches. Doolally can resume.</p>
+          </div>
+          <button class="btn btn-primary" id="recovery-resume" type="button">Resume from SQLite</button>
+        </div>
+      </section>
+
+      <section id="board" aria-labelledby="board-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Scoreboard</p>
+            <h2 id="board-title">Doolally vs Trollino</h2>
+          </div>
+          <p class="section-note">
+            Accuracy against the dataset label, plus latency. The labels are heuristics, so this is
+            a lab, not a leaderboard for production.
+          </p>
+        </div>
+
+        <div class="model-grid">
+          <article class="model-card" data-model="lfm" aria-labelledby="lfm-name">
+            <div class="model-head">
+              <img src="assets/doolally-moderator.webp" alt="Doolally the moderator" width="96" height="96" />
+              <div>
+                <span class="role-tag role-mod">Moderator</span>
+                <h3 id="lfm-name">Doolally</h3>
+                <p>LFM2.5-8B-A1B</p>
+              </div>
+              <span class="model-status" data-tone="muted" id="lfm-status">idle</span>
+            </div>
+            <p class="model-line">Reads everything, then reaches for the banhammer.</p>
+            <dl class="stats">
+              <div><dt>Accuracy</dt><dd id="lfm-accuracy">-</dd></div>
+              <div><dt>Correct</dt><dd id="lfm-correct">-</dd></div>
+              <div><dt>Median</dt><dd id="lfm-median">-</dd></div>
+              <div><dt>Mean</dt><dd id="lfm-mean">-</dd></div>
+              <div><dt>p95</dt><dd id="lfm-p95">-</dd></div>
+              <div><dt>Errors</dt><dd id="lfm-errors">-</dd></div>
+            </dl>
+            <div class="verdict" id="lfm-verdict">Waiting for the first batch.</div>
+          </article>
+
+          <article class="model-card" data-model="d1" aria-labelledby="d1-name">
+            <div class="model-head">
+              <img src="assets/trollino-author.webp" alt="Trollino the author" width="96" height="96" />
+              <div>
+                <span class="role-tag role-author">Author</span>
+                <h3 id="d1-name">Trollino</h3>
+                <p>d1-3B</p>
+              </div>
+              <span class="model-status" data-tone="muted" id="d1-status">idle</span>
+            </div>
+            <p class="model-line">One forward pass, one opinion, zero patience.</p>
+            <dl class="stats">
+              <div><dt>Accuracy</dt><dd id="d1-accuracy">-</dd></div>
+              <div><dt>Correct</dt><dd id="d1-correct">-</dd></div>
+              <div><dt>Median</dt><dd id="d1-median">-</dd></div>
+              <div><dt>Mean</dt><dd id="d1-mean">-</dd></div>
+              <div><dt>p95</dt><dd id="d1-p95">-</dd></div>
+              <div><dt>Errors</dt><dd id="d1-errors">-</dd></div>
+            </dl>
+            <div class="verdict" id="d1-verdict">Waiting for the first batch.</div>
+          </article>
+
+          <article class="model-card duel-card" aria-labelledby="duel-title">
+            <div class="duel-head">
+              <span class="role-tag role-duel">The clash</span>
+              <h3 id="duel-title">Who won the batch?</h3>
+            </div>
+            <div class="duel-score" id="duel-score">-</div>
+            <p class="duel-copy" id="duel-copy">
+              Start a run and the trolls will pick a fight over every text.
+            </p>
+            <dl class="stats duel-stats">
+              <div><dt>Disagreements</dt><dd id="disagreements">-</dd></div>
+              <div><dt>Tasks done</dt><dd id="tasks-done">-</dd></div>
+              <div><dt>Batches</dt><dd id="batches-done">-</dd></div>
+              <div><dt>Errors</dt><dd id="total-errors">-</dd></div>
+            </dl>
+          </article>
+        </div>
+      </section>
+
+      <section class="recent" aria-labelledby="recent-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Last bites</p>
+            <h2 id="recent-title">Recent tasks</h2>
+          </div>
+          <p class="section-note">Newest batch first. Wrong guesses are marked in fire red.</p>
+        </div>
+        <div class="task-list" id="task-list">
+          <p class="empty">No tasks yet. Send the trolls to start the queue.</p>
+        </div>
+      </section>
+
+      <section class="runs-grid" id="history" aria-labelledby="history-title">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">The archive</p>
+              <h2 id="history-title">Runs</h2>
+            </div>
+            <button class="btn btn-small btn-ghost" id="refresh-runs" type="button">Refresh</button>
+          </div>
+          <div class="run-list" id="run-list">
+            <p class="empty">No runs yet.</p>
+          </div>
+        </div>
+
+        <div class="panel" id="logs">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Troll talk</p>
+              <h2>Worker log</h2>
+            </div>
+            <button class="btn btn-small btn-ghost" id="load-log" type="button" disabled>Load log</button>
+          </div>
+          <pre class="log-view" id="log-view" tabindex="0">Select a run to read its log.</pre>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Built for the DLLY lab. Models run locally in Docker. Short texts come from the committed
+        10,000-row pool, sampled by class with a stable hash.
+      </p>
+      <p class="footer-small">
+        Labels are heuristics, not gold annotations. Use this to explore trade-offs, not to
+        moderate a real community. No text leaves your machine.
+      </p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
