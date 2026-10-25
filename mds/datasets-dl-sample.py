@@ -173,7 +173,10 @@ def build(per_class: int, max_scan: int, ag_reserve: int, output: Path, seed: in
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--per-class", type=int, default=50, help="rows per class (default: 50, about 200 total)")
     parser.add_argument("--ag-reserve", type=int, default=10, help="rows per mixed class to leave for AG News")
     parser.add_argument("--max-scan", type=int, default=200_000, help="stop after this many source rows")
