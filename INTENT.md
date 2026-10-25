@@ -56,25 +56,35 @@ The demo is meant to be watched, not just benchmarked. A batch is small enough t
 Sources shortlisted in [mds/datasets.md](mds/datasets.md):
 
 - [Yahoo Answers 10 Categories](https://huggingface.co/datasets/yassiracharki/Yahoo_Answers_10_categories_for_NLP) - Health, Business & Finance, Politics & Government.
-- [AG News](https://huggingface.co/datasets/fancyzhx/ag_news) - Business and Sci/Tech.
+- [AG News](https://huggingface.co/datasets/fancyzhx/ag_news) - Business and World news.
 - [DeepPavlov Topics](https://deeppavlov.ai/datasets/topics) - 33 topics, 4.2M samples, for later scale-up.
 - [Reuters-21578](https://huggingface.co/datasets/ucirvine/reuters21578) - business, trading and crypto vocabulary.
 
+The canonical pool is built by [lab/datasets/build.py](lab/datasets/build.py); design notes are in [lab/datasets/README.md](lab/datasets/README.md).
+
 Rules:
 
-- **Bootstrap small.** The bootstrap run downloads only the Yahoo test split (32 MB) and the AG News test split (1.2 MB), then stops at 50 rows per class (200 total).
-- **Scale later.** Move to the full 1000-task list only after the end-to-end demo works. A 1000-task run needs about 250 rows per class.
-- **Yahoo labels are noisy.** Some rows are clearly mislabeled. That is part of the lesson: keep the source label visible and do not over-tune on 200 rows.
-- **Legal is noisy.** The Legal & Regulatory class is filtered by keywords (`court`, `lawsuit`, `compliance`, `contract` and similar), not human-labeled. Keep that caveat visible in the GUI and docs.
-- **Files stay local.** Dataset outputs go to `datasets/`, are gitignored, and are not published to GitHub Pages.
+- **Canonical pool.** 10,000 rows, 2,500 per class.
+- **Folds.** 8 x 1,000 rows (250 per class) plus 2,000 holdout rows (500 per class). Pilot 100, short 1,000, long 10,000.
+- **Short texts.** d1-3B context is 32,768 tokens, LFM2.5 is 128,000. Cap text at 2,000 characters (about 500 tokens). The current build has p50 444 chars, p99 1,984 chars and max 500 estimated tokens.
+- **Mixed sources.** Yahoo Answers test plus AG News train. The current build has 8,230 Yahoo rows and 1,770 AG News rows.
+- **Heuristics, not gold labels.** Topic anchors for Medical, Politics and Financial; legal scoring for Legal. Yahoo labels are noisy and Legal is keyword-filtered. Keep the caveat visible.
+- **Files stay local.** Generated files in `datasets/` are gitignored and are not published to GitHub Pages.
 
-Bootstrap command:
+Commands:
 
 ```bash
-pixi run python mds/datasets-dl-sample.py --per-class 50
+# full 10k pool
+pixi run python lab/datasets/build.py --per-class 2500
+
+# reuse raw candidates while tuning
+pixi run python lab/datasets/build.py --per-class 2500 --reuse-raw
+
+# 200-row smoke pool
+pixi run python lab/datasets/build.py --target 200 --name high-risk-200
 ```
 
-Output: `datasets/high_risk_bootstrap.csv` with columns `text,label,source`. The script downloads directly from Hugging Face and caches files under `scratch/hf-cache`, never the 746 MB Yahoo train split.
+Outputs: `datasets/high-risk-10k.jsonl` (canonical), `.csv` (human view) and `.manifest.json` (stats). The builder caches downloads under `scratch/hf-cache` and never pulls the 746 MB Yahoo train split.
 
 ## Architecture
 
@@ -107,9 +117,9 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 | `gui/` | build output directory for the GUI | empty |
 | `src/` | Node.js lab code | not created yet |
 | `docker/` | container definitions, `dlly-` prefix | empty |
-| `lab/` | hands-on plan and experiments | empty |
+| `lab/` | hands-on plan and experiments | dataset builder + design notes |
 | `mds/` | deep dives and reference lists | dataset notes + durable research |
-| `datasets/` | curated short-topic datasets | 200-row bootstrap CSV, local only |
+| `datasets/` | curated short-topic datasets | 10k canonical pool, local only |
 | `tests/` | Python test code | empty |
 | `scratch/` | logs, HF cache and crash artifacts, gitignored except `.gitkeep` | ready |
 
@@ -119,7 +129,7 @@ Python flow (pixi dlly)  --  dataset sampling and preparation
 - [x] Verify `node:sqlite` and local `npx` installs.
 - [x] Research durable execution examples: [mds/durable-execution.md](mds/durable-execution.md).
 - [x] Record the static-only rule for `docs/` and the `gui/` build directory.
-- [x] Dataset bootstrap: 50 rows per class (200 total) from Yahoo Answers + AG News.
+- [x] Dataset: 10,000 rows, 2,500 per class, 8 folds plus 2,000 holdout rows.
 - [ ] SQLite schema: runs, tasks, attempts, labels, timings.
 - [ ] Node durable worker with `short` and `long` play modes.
 - [ ] llama.cpp Docker services for both models.
